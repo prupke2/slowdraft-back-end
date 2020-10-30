@@ -1,5 +1,7 @@
 from app import *
-from credentials import *
+from .credentials import *
+import base64
+import requests
 # from yahoo_api import *
 # from models import draft
 # import db
@@ -7,7 +9,6 @@ from credentials import *
 
 def test():
   print("Success")
-
 
 def getAccessToken(client_id, client_secret, redirect_uri, code):
 	# This function takes the 7 digit code from the user and attempts to get a yahoo access token 
