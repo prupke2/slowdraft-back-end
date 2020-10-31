@@ -1,5 +1,4 @@
-from app import *
-from .credentials import *
+import credentials
 import base64
 import requests
 # from yahoo_api import *
@@ -26,7 +25,6 @@ def getAccessToken(client_id, client_secret, redirect_uri, code):
 		'client_secret': client_secret,
 		'redirect_uri': str(redirect_uri)
 	}
-	# print("POST request: " + GET_TOKEN_URL + str(headers) + str(data))
 	response = requests.post(credentials.GET_TOKEN_URL, headers=headers, data=data)
 	print("\nResponse: " + str(response))
 	print(str(response.json()))
@@ -58,7 +56,6 @@ def refreshAccessToken(client_id, client_secret, redirect_uri):
 		session['access_token'] = token_response['access_token']
 		session['refresh_token'] = token_response['refresh_token']
 		session['guid'] = token_response['xoauth_yahoo_guid']
-		# print("guid: **** " + session['guid'])
 		return True
 	else:
 		print("Error getting token. ")
