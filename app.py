@@ -41,6 +41,5 @@ if __name__== '__main__':
   config.redirect_uri = "oob"
   app.run(debug=True)
 else:
-  print("Not name = main")
-  app.secret_key = "asdf"
-  app.run(debug=True)
+  app.secret_key = os.environ['flask_secret_key']
+  app.run()
