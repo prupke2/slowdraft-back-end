@@ -1,13 +1,12 @@
-import credentials
+import config
 import base64
 import requests
 # from yahoo_api import *
 # from models import draft
 # import db
-# import config
 
 def test():
-  print("Success")
+  print("test")
 
 def getAccessToken(client_id, client_secret, redirect_uri, code):
 	# This function takes the 7 digit code from the user and attempts to get a yahoo access token 
@@ -25,7 +24,7 @@ def getAccessToken(client_id, client_secret, redirect_uri, code):
 		'client_secret': client_secret,
 		'redirect_uri': str(redirect_uri)
 	}
-	response = requests.post(credentials.GET_TOKEN_URL, headers=headers, data=data)
+	response = requests.post(config.GET_TOKEN_URL, headers=headers, data=data)
 	print("\nResponse: " + str(response))
 	print(str(response.json()))
 	if response.status_code >= 200 and response.status_code <= 203:
@@ -49,7 +48,7 @@ def refreshAccessToken(client_id, client_secret, redirect_uri):
 		'refresh_token' : session['refresh_token'], 
 		'grant_type' : 'refresh_token'
 	}
-	response = requests.post(credentials.GET_TOKEN_URL, data)
+	response = requests.post(config.GET_TOKEN_URL, data)
 	if response.status_code >= 200 and response.status_code <= 203:
 		token_response = response.json()
 		session['yahoo'] = True
