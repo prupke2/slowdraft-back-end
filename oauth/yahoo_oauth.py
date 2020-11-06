@@ -5,6 +5,9 @@ import requests
 # from models import draft
 # import db
 
+# YAHOO_AUTH_URL = 'https://api.login.yahoo.com/oauth2/request_auth?client_id=' + config.client_id + \
+# 				"&redirect_uri=" + config.redirect_uri + "&response_type=code&language=en-us&state=" + str(session['state'])	
+
 def test():
   print("test")
 

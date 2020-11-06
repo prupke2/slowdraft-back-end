@@ -39,7 +39,6 @@ if __name__== '__main__':
   config.client_id = credentials.consumer_key
   config.client_secret = credentials.consumer_secret
   config.redirect_uri = "oob"
-  app.run(debug=True)
+  app.run(use_reloader=True, port=5000, threaded=True, debug=True)
 else:
   app.secret_key = os.environ['flask_secret_key']
-  app.run()
