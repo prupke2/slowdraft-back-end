@@ -42,3 +42,7 @@ if __name__== '__main__':
   app.run(use_reloader=True, port=5000, threaded=True, debug=True)
 else:
   app.secret_key = os.environ['flask_secret_key']
+  @app.before_request
+  def force_https():
+    if request.endpoint in app.view_functions and not request.is_secure:
+      return redirect(request.url.replace('http://', 'https://'))
