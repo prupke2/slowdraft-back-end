@@ -31,18 +31,18 @@ def serve(path):
 #   }
 #   return jsonify(oauth_data)
 
-@app.route('/login/<string:code>', methods=['GET'])
+@app.route('/login', methods=['GET'])
 def login(code):
   # if 'access_token' in session:
   #   print("Success!\n\n")
   #   print(session['access_token'])
   #   return {"access_token": session["access_token"]}
-  # code = request.args.get('code', default='')
+  code = request.args.get('code', default='')
   if code != '':
     response, success = getAccessToken(config.client_id, config.client_secret, config.redirect_uri, code)
     print(str(response))
     print(str(success))
-    return jsonify(response) 
+    return jsonify({"response": response, "access_token": session['access_token']}) 
   else:
     response = "No code provided."
     return jsonify({"response": response})
