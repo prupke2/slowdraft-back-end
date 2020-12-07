@@ -1,1 +1,2 @@
-# from oauth import *
+from oauth import *
+import config
