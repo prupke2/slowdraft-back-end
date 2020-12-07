@@ -36,9 +36,9 @@ def getAccessToken(client_id, client_secret, redirect_uri, code):
 		session['access_token'] = token_response['access_token']
 		session['refresh_token'] = token_response['refresh_token']
 		session['guid'] = token_response['xoauth_yahoo_guid']
-		return '', True
+		return {"response": "Login Successful.", "success": True}
 	else:
-		return response.json(), False
+		return {"response": response.json(), "success": False}
 
 def refreshAccessToken(client_id, client_secret, redirect_uri):
 	# Oauth access tokens expire after one hour
