@@ -18,13 +18,34 @@ def serve(path):
   else:
     return send_from_directory(app.static_folder, 'index.html')
 
-@app.route('/login', methods=['GET'])
-def index():
-  session['state'] = str(randint(1000000, 99999999))
-  code = 12345
-  response, success = getAccessToken(config.client_id, config.client_secret, config.redirect_uri, code)
-  test()
-  return "Hello world"
+# @app.route('/oauth_data', methods=['GET'])
+# def oauth_data():
+#   code = request.args.get('code', default='')
+#   if code != '':
+#     return redirect(url_for('login'))
+#   session['state'] = str(randint(1000000, 99999999))
+#   oauth_data = {
+#     "client_id": config.client_id,
+#     "redirect_uri": config.redirect_uri,
+#     "state": session['state']
+#   }
+#   return jsonify(oauth_data)
+
+@app.route('/login/<string:code>', methods=['GET'])
+def login(code):
+  # if 'access_token' in session:
+  #   print("Success!\n\n")
+  #   print(session['access_token'])
+  #   return {"access_token": session["access_token"]}
+  # code = request.args.get('code', default='')
+  if code != '':
+    response, success = getAccessToken(config.client_id, config.client_secret, config.redirect_uri, code)
+    print(str(response))
+    print(str(success))
+    return jsonify(response) 
+  else:
+    response = "No code provided."
+    return jsonify({"response": response})
 
 @app.route('/test')
 def time():
