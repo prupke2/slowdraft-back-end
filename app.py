@@ -37,15 +37,30 @@ def login(code):
   #   print("Success!\n\n")
   #   print(session['access_token'])
   #   return {"access_token": session["access_token"]}
-  # code = request.args.get('code', default='')
   if code != '':
-    response, success = getAccessToken(config.client_id, config.client_secret, config.redirect_uri, code)
-    print(str(response))
-    print(str(success))
-    return jsonify({"response": response, "access_token": session['access_token']}) 
+    # if 'yahoo' in session:
+    #   return jsonify({'response': 'Already logged in.'})
+    response = getAccessToken(config.client_id, config.client_secret, config.redirect_uri, code)
+    if response == True:
+      return jsonify(
+        {
+          'response': 'success',
+          'access_token': session['access_token'],
+          'refresh_token': session['refresh_token']
+        }
+      ) 
+    else:
+      return jsonify(
+        {
+          'response': 'error',
+          'message': response
+        }
+      ) 
+      
   else:
-    response = "No code provided."
-    return jsonify({"response": response})
+    print('Warning: No code provided.')
+    return jsonify({'response': 'No code provided'}) 
+
 
 @app.route('/test')
 def time():
@@ -62,7 +77,7 @@ if __name__== '__main__':
   config.redirect_uri = "oob"
   app.run(use_reloader=True, port=5000, threaded=True, debug=True)
 else:
-  app.secret_key = os.environ['flask_secret_key']
+  # app.secret_key = os.environ['flask_secret_key']
   @app.before_request
   def force_https():
     if request.endpoint in app.view_functions and not request.is_secure:

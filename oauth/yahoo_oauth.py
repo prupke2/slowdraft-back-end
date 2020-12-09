@@ -1,6 +1,7 @@
 import config
 import base64
 import requests
+from app import *
 # from yahoo_api import *
 # from models import draft
 # import db
@@ -32,13 +33,11 @@ def getAccessToken(client_id, client_secret, redirect_uri, code):
 	print(str(response.json()))
 	if response.status_code >= 200 and response.status_code <= 203:
 		token_response=response.json()
-		session['yahoo'] = True
 		session['access_token'] = token_response['access_token']
 		session['refresh_token'] = token_response['refresh_token']
-		session['guid'] = token_response['xoauth_yahoo_guid']
-		return {"response": "Login Successful.", "success": True}
+		return True
 	else:
-		return {"response": response.json(), "success": False}
+		return False
 
 def refreshAccessToken(client_id, client_secret, redirect_uri):
 	# Oauth access tokens expire after one hour
@@ -57,7 +56,6 @@ def refreshAccessToken(client_id, client_secret, redirect_uri):
 		session['yahoo'] = True
 		session['access_token'] = token_response['access_token']
 		session['refresh_token'] = token_response['refresh_token']
-		session['guid'] = token_response['xoauth_yahoo_guid']
 		return True
 	else:
 		print("Error getting token. ")
