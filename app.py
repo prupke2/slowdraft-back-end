@@ -31,6 +31,22 @@ def serve(path):
 #   }
 #   return jsonify(oauth_data)
 
+@app.route('/check_login')
+def check_login():
+  if 'access_token' in session and 'refresh_token' in session:
+    return jsonify({'success': True, 'pub': config.pubnub_publish_key, 'sub': config.pubnub_subscribe_key})
+  return jsonify({'success': False, 'error': 'Unable to get access token'})
+
+@app.route('/logout')
+def logout():
+  try:
+	  session.clear()
+	  return jsonify({'success': True})
+  except Exception(e):
+    error = 'Error clearing session: ' + str(e)
+    return jsonify({'success': False, 'error': 'Unable to clear session'})
+
+
 @app.route('/login/<string:code>', methods=['GET'])
 def login(code):
   # if 'access_token' in session:
@@ -75,8 +91,17 @@ if __name__== '__main__':
   config.client_id = credentials.consumer_key
   config.client_secret = credentials.consumer_secret
   config.redirect_uri = "oob"
+  config.pubnub_publish_key = credentials.pubnub_publish_key
+  config.pubnub_subscribe_key = credentials.pubnub_subscribe_key
   app.run(use_reloader=True, port=5000, threaded=True, debug=True)
 else:
+  if 'flask_secret_key' in os.environ:
+    app.secret_key = os.environ['flask_secret_key']
+  
+  if 'pub' in os.environ:
+    config.pubnub_publish_key = os.environ['pubnub_publish_key']
+    config.pubnub_subscribe_key = os.environ['pubnub_subscribe_key']
+
   # app.secret_key = os.environ['flask_secret_key']
   @app.before_request
   def force_https():
