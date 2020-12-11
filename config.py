@@ -64,8 +64,8 @@ NHL_TEAM_ID = {
 }
 
 # Yahoo endpoints 
-YAHOO_BASE_URL = "https://fantasysports.yahooapis.com/fantasy/v2/"
-GET_TOKEN_URL = "https://api.login.yahoo.com/oauth2/get_token" # used for Oauth
+YAHOO_BASE_URL = 'https://fantasysports.yahooapis.com/fantasy/v2/'
+GET_TOKEN_URL = 'https://api.login.yahoo.com/oauth2/get_token' # used for Oauth
 
 # Yahoo Oauth variables - set from env variables at runtime
 client_id = ''
@@ -73,6 +73,10 @@ client_secret = ''
 redirect_uri = ''
 league_key = ''
 team_id = ''
+
+# Pubnub variables - these are used for chat backend
+pubnub_publish_key = ''
+pubnub_subscribe_key = ''
 
 # Yahoo stat_id mappings - can comment out ones that are not needed
 SKATER_STAT_INDEX = {
