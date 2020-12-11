@@ -98,6 +98,9 @@ else:
   if 'flask_secret_key' in os.environ:
     app.secret_key = os.environ['flask_secret_key']
   
+  if 'client_id' in os.environ:
+    config.client_id = os.environ['client_id']
+    config.client_secret = os.environ['client_secret']
   if 'pub' in os.environ:
     config.pubnub_publish_key = os.environ['pubnub_publish_key']
     config.pubnub_subscribe_key = os.environ['pubnub_subscribe_key']
