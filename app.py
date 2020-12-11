@@ -4,6 +4,9 @@ from random import randint
 import time
 import config
 import os, sys, json
+import xmltodict
+from models.league import *
+from yahoo_api import *
 
 app = Flask(__name__, 
   static_url_path='',
@@ -18,24 +21,22 @@ def serve(path):
   else:
     return send_from_directory(app.static_folder, 'index.html')
 
-# @app.route('/oauth_data', methods=['GET'])
-# def oauth_data():
-#   code = request.args.get('code', default='')
-#   if code != '':
-#     return redirect(url_for('login'))
-#   session['state'] = str(randint(1000000, 99999999))
-#   oauth_data = {
-#     "client_id": config.client_id,
-#     "redirect_uri": config.redirect_uri,
-#     "state": session['state']
-#   }
-#   return jsonify(oauth_data)
-
 @app.route('/check_login')
 def check_login():
   if 'access_token' in session and 'refresh_token' in session:
-    return jsonify({'success': True, 'pub': config.pubnub_publish_key, 'sub': config.pubnub_subscribe_key})
+    # On successful login, return Pubnub keys for chat backend
+    return jsonify(
+      {
+        'success': True, 
+        'pub': config.pubnub_publish_key, 
+        'sub': config.pubnub_subscribe_key
+      }
+    )
   return jsonify({'success': False, 'error': 'Unable to get access token'})
+
+@app.route('/get_league')
+def league():
+  return jsonify({'league': get_league()})
 
 @app.route('/logout')
 def logout():
@@ -49,13 +50,7 @@ def logout():
 
 @app.route('/login/<string:code>', methods=['GET'])
 def login(code):
-  # if 'access_token' in session:
-  #   print("Success!\n\n")
-  #   print(session['access_token'])
-  #   return {"access_token": session["access_token"]}
   if code != '':
-    # if 'yahoo' in session:
-    #   return jsonify({'response': 'Already logged in.'})
     response = get_access_token(config.client_id, config.client_secret, config.redirect_uri, code)
     if response == True:
       return jsonify(
@@ -72,11 +67,9 @@ def login(code):
           'message': response
         }
       ) 
-      
   else:
     print('Warning: No code provided.')
     return jsonify({'response': 'No code provided'}) 
-
 
 @app.route('/test')
 def time():
@@ -91,22 +84,32 @@ if __name__== '__main__':
   config.client_id = credentials.consumer_key
   config.client_secret = credentials.consumer_secret
   config.redirect_uri = "oob"
+
+  # get Yahoo league credentials
+  config.league_key = credentials.game_key + ".l." + credentials.league_id
+
+  # get Pubnub credentials (for chat)
   config.pubnub_publish_key = credentials.pubnub_publish_key
   config.pubnub_subscribe_key = credentials.pubnub_subscribe_key
+
   app.run(use_reloader=True, port=5000, threaded=True, debug=True)
 else:
   if 'flask_secret_key' in os.environ:
     app.secret_key = os.environ['flask_secret_key']
-  
+
   if 'client_id' in os.environ:
     config.client_id = os.environ['client_id']
     config.client_secret = os.environ['client_secret']
     config.redirect_uri = "https://slowdraft.herokuapp.com"
+
   if 'pubnub_publish_key' in os.environ:
     config.pubnub_publish_key = os.environ['pubnub_publish_key']
     config.pubnub_subscribe_key = os.environ['pubnub_subscribe_key']
 
-  # app.secret_key = os.environ['flask_secret_key']
+	# get Yahoo league credentials
+  if 'game_key' in os.environ and 'league_id' in os.environ:
+    config.league_key = os.environ['game_key'] + ".l." + os.environ['league_id']
+
   @app.before_request
   def force_https():
     if request.endpoint in app.view_functions and not request.is_secure:

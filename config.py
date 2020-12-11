@@ -67,7 +67,7 @@ NHL_TEAM_ID = {
 YAHOO_BASE_URL = 'https://fantasysports.yahooapis.com/fantasy/v2/'
 GET_TOKEN_URL = 'https://api.login.yahoo.com/oauth2/get_token' # used for Oauth
 
-# Yahoo Oauth variables - set from env variables at runtime
+# Yahoo Oauth variables and league data - set from env variables at runtime
 client_id = ''
 client_secret = ''
 redirect_uri = ''
