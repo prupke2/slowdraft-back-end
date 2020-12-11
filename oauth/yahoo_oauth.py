@@ -6,13 +6,10 @@ from app import *
 # from models import draft
 # import db
 
-# YAHOO_AUTH_URL = 'https://api.login.yahoo.com/oauth2/request_auth?client_id=' + config.client_id + \
-# 				"&redirect_uri=" + config.redirect_uri + "&response_type=code&language=en-us&state=" + str(session['state'])	
-
 def test():
   print("test")
 
-def getAccessToken(client_id, client_secret, redirect_uri, code):
+def get_access_token(client_id, client_secret, redirect_uri, code):
 	# This function takes the 7 digit code from the user and attempts to get a yahoo access token 
 	# If successful, the access and refresh tokens that are returned will be stored as session variables
 	base64_token = base64.b64encode((client_id + ':' + client_secret).encode())
@@ -39,7 +36,7 @@ def getAccessToken(client_id, client_secret, redirect_uri, code):
 	else:
 		return False
 
-def refreshAccessToken(client_id, client_secret, redirect_uri):
+def refresh_access_token(client_id, client_secret, redirect_uri):
 	# Oauth access tokens expire after one hour
 	# If it is expired, this function uses the refresh token stored in the session to get a new one
 	print("Refreshing access token...")

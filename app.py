@@ -56,7 +56,7 @@ def login(code):
   if code != '':
     # if 'yahoo' in session:
     #   return jsonify({'response': 'Already logged in.'})
-    response = getAccessToken(config.client_id, config.client_secret, config.redirect_uri, code)
+    response = get_access_token(config.client_id, config.client_secret, config.redirect_uri, code)
     if response == True:
       return jsonify(
         {
@@ -101,6 +101,7 @@ else:
   if 'client_id' in os.environ:
     config.client_id = os.environ['client_id']
     config.client_secret = os.environ['client_secret']
+    config.redirect_uri = "https:///slowdraft.herokuapp.com"
   if 'pub' in os.environ:
     config.pubnub_publish_key = os.environ['pubnub_publish_key']
     config.pubnub_subscribe_key = os.environ['pubnub_subscribe_key']
