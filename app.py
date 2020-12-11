@@ -57,7 +57,9 @@ def login(code):
         {
           'response': 'success',
           'access_token': session['access_token'],
-          'refresh_token': session['refresh_token']
+          'refresh_token': session['refresh_token'],
+          'pub': config.pubnub_publish_key, 
+          'sub': config.pubnub_subscribe_key
         }
       ) 
     else:
