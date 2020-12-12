@@ -1,1 +1,1 @@
-import oauth.yahoo_oauth
+from yahoo_oauth import *

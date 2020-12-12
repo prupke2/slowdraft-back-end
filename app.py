@@ -6,6 +6,7 @@ import config
 import os, sys, json
 import xmltodict
 from models.league import *
+from models.players import *
 from yahoo_api import *
 
 app = Flask(__name__, 
@@ -20,23 +21,6 @@ def serve(path):
     return send_from_directory(app.static_folder, path)
   else:
     return send_from_directory(app.static_folder, 'index.html')
-
-@app.route('/check_login')
-def check_login():
-  if 'access_token' in session and 'refresh_token' in session:
-    # On successful login, return Pubnub keys for chat backend
-    return jsonify(
-      {
-        'success': True, 
-        'pub': config.pubnub_publish_key, 
-        'sub': config.pubnub_subscribe_key
-      }
-    )
-  return jsonify({'success': False, 'error': 'Unable to get access token'})
-
-@app.route('/get_league')
-def league():
-  return jsonify({'league': get_league()})
 
 @app.route('/logout')
 def logout():
@@ -55,7 +39,7 @@ def login(code):
     if response == True:
       return jsonify(
         {
-          'response': 'success',
+          'success': True,
           'access_token': session['access_token'],
           'refresh_token': session['refresh_token'],
           'pub': config.pubnub_publish_key, 
@@ -65,13 +49,51 @@ def login(code):
     else:
       return jsonify(
         {
-          'response': 'error',
-          'message': response
+          'success': False,
+          'error': response
         }
       ) 
   else:
     print('Warning: No code provided.')
     return jsonify({'response': 'No code provided'}) 
+
+
+@app.route('/check_login')
+def check_login():
+  if 'access_token' in session and 'refresh_token' in session:
+    # On successful login, return Pubnub keys for chat backend
+    return jsonify(
+      {
+        'success': True, 
+        'pub': config.pubnub_publish_key, 
+        'sub': config.pubnub_subscribe_key
+      }
+    )
+  return jsonify(
+    {
+      'success': False, 
+      'error': 'Unable to get access token'
+    }
+  )
+
+@app.route('/get_league')
+def league():
+  return jsonify({'league': get_league()})
+
+@app.route('/get_players')
+def players():
+  sortby = request.args.get('sortby', default=3)
+  sortdir = request.args.get('sortdir', default=0)
+  position = request.args.get('position', default='LW,RW,C')
+  player_search = request.args.get('player_search', default='')
+  showdrafted = request.args.get('showdrafted', default='False')
+  offset = request.args.get('offset', default='0')
+  skaters, skater_stats, goalies, goalie_stats = get_players(sortby, sortdir, position, player_search, offset)	
+
+	# skaters, skater_stats, goalies, goalie_stats = getPlayers(sortby=sortby, sortdir=sortdir, position=position, player_search=player_search, offset=offset)	
+
+  return jsonify({'players': skaters})
+
 
 @app.route('/test')
 def time():

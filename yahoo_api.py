@@ -2,8 +2,9 @@ from app import *
 # from models.team import *
 # from oauth import *
 import config
-from oauth import *
+from yahoo_oauth import *
 import requests
+# import oauth
 # oauth.yahoo_oauth import get_access_token, refresh_access_token, test
 
 def yahoo_request(url):
@@ -36,7 +37,7 @@ def yahoo_request(url):
 			return ""
 		# if refresh token is obtained, call the function again as it should work now	
 		print("Success!")	
-		return yahooApi(url)
+		return yahoo_request(url)
 	else:
 		print("HTTP Code: %s" % response.status_code)
 		print("HTTP Response: \n%s" % response.content)
@@ -45,7 +46,7 @@ def yahoo_request(url):
 def organize_player_info(player_keys):	
 	LEAGUE_URL = YAHOO_BASE_URL + "league/" + config.league_key + "/players;player_keys=" + player_keys
 	players = []
-	player_query = yahooApi(LEAGUE_URL)
+	player_query = yahoo_request(LEAGUE_URL)
 	try:
 		for player in player_query['fantasy_content']['league']['players']['player']:
 			player_data = {}
@@ -88,9 +89,9 @@ def organize_stat_data(stats):
 				stat_data['player_id'] = stat_set['player_id']
 
 				if stat_set['position_type'] == 'G':
-					stat_index = GOALIE_STAT_INDEX
+					stat_index = config.GOALIE_STAT_INDEX
 				else:
-					stat_index = SKATER_STAT_INDEX	
+					stat_index = config.SKATER_STAT_INDEX	
 					# stat_data['stat'] = 'GOALIE'
 				for key in stat_index:
 					if key == str(stat_data['stat_id']):
