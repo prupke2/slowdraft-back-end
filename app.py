@@ -123,6 +123,8 @@ if __name__== '__main__':
   config.host, config.user, config.password, config.db = credentials.get_local_DB()
   database = db.DB() 
 
+  config.yahoo_league_id = credentials.yahoo_league_id
+
   app.run(use_reloader=True, port=5000, threaded=True, debug=True)
 else:
   if 'flask_secret_key' in os.environ:
@@ -148,7 +150,9 @@ else:
     config.password = os.environ['MYSQL_PASSWORD']
     config.db = os.environ['MYSQL_DB']
     database = db.DB()
-		
+
+  if 'yahoo_league_id' in os.environ:
+    config.yahoo_league_id = [os.environ['yahoo_league_id']]	
   @app.before_request
   def force_https():
     if request.endpoint in app.view_functions and not request.is_secure:

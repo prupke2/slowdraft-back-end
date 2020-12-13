@@ -1,5 +1,4 @@
 from app import * 
-import credentials
 import datetime
 # import yahoo_api
 import db
@@ -11,7 +10,7 @@ import db
 
 def get_forum_posts():
 	if 'yahoo_league_id' not in session:
-		session['yahoo_league_id'] = credentials.yahoo_league_id
+		session['yahoo_league_id'] = config.yahoo_league_id
 	
 	if 'offset' not in session:
 		session['offset'] = -5
