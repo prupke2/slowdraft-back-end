@@ -7,7 +7,11 @@ import os, sys, json
 import xmltodict
 from models.league import *
 from models.players import *
+from models.forum import *
 from yahoo_api import *
+import db
+import datetime
+import pymysql
 
 app = Flask(__name__, 
   static_url_path='',
@@ -30,7 +34,6 @@ def logout():
   except Exception(e):
     error = 'Error clearing session: ' + str(e)
     return jsonify({'success': False, 'error': 'Unable to clear session'})
-
 
 @app.route('/login/<string:code>', methods=['GET'])
 def login(code):
@@ -88,12 +91,12 @@ def players():
   player_search = request.args.get('player_search', default='')
   showdrafted = request.args.get('showdrafted', default='False')
   offset = request.args.get('offset', default='0')
-  skaters, skater_stats, goalies, goalie_stats = get_players(sortby, sortdir, position, player_search, offset)	
-
-	# skaters, skater_stats, goalies, goalie_stats = getPlayers(sortby=sortby, sortdir=sortdir, position=position, player_search=player_search, offset=offset)	
-
+  skaters, skater_stats, goalies, goalie_stats = get_players(sortby, sortdir, position, player_search, offset)
   return jsonify({'players': skaters})
 
+@app.route('/get_forum_posts')
+def forum():
+  return jsonify({"posts": get_forum_posts()})
 
 @app.route('/test')
 def time():
@@ -116,6 +119,10 @@ if __name__== '__main__':
   config.pubnub_publish_key = credentials.pubnub_publish_key
   config.pubnub_subscribe_key = credentials.pubnub_subscribe_key
 
+  # get local DB credentials
+  config.host, config.user, config.password, config.db = credentials.get_local_DB()
+  database = db.DB() 
+
   app.run(use_reloader=True, port=5000, threaded=True, debug=True)
 else:
   if 'flask_secret_key' in os.environ:
@@ -134,6 +141,14 @@ else:
   if 'game_key' in os.environ and 'league_id' in os.environ:
     config.league_key = os.environ['game_key'] + ".l." + os.environ['league_id']
 
+  # get DB config
+  if 'MYSQL_HOST' in os.environ:
+    config.host = os.environ['MYSQL_HOST']
+    config.user = os.environ['MYSQL_USER']
+    config.password = os.environ['MYSQL_PASSWORD']
+    config.db = os.environ['MYSQL_DB']
+    database = db.DB()
+		
   @app.before_request
   def force_https():
     if request.endpoint in app.view_functions and not request.is_secure:
