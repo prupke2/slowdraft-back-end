@@ -1,13 +1,20 @@
 from app import * 
+import credentials
+import datetime
 # import yahoo_api
 import db
-import download_players
-from models import rules
+# import download_players
+# from models import rules
 
-class ForumReplyForm(Form):
-	body = TextAreaField('Body', [validators.Length(min=1, max=20000)])	
+# class ForumReplyForm(Form):
+# 	body = TextAreaField('Body', [validators.Length(min=1, max=20000)])	
 
-def getAllForumPosts():
+def get_forum_posts():
+	if 'yahoo_league_id' not in session:
+		session['yahoo_league_id'] = credentials.yahoo_league_id
+	
+	if 'offset' not in session:
+		session['offset'] = -5
 	sql = ("SELECT f.*, u.username AS 'user', u.role, u.color, u.user_id \
 		FROM forum f left join users u on u.yahoo_team_id = f.yahoo_team_id \
 		WHERE f.parent_id IS NULL \
@@ -19,6 +26,7 @@ def getAllForumPosts():
 	for post in posts:
 		post['create_date'] = post['create_date'] - datetime.timedelta(minutes=int(float(session['offset'])))
 		post['update_date'] = post['update_date'] - datetime.timedelta(minutes=int(float(session['offset'])))
+	print(str(posts))
 	return posts
 
 def getForumPost(id):
