@@ -28,20 +28,20 @@ def get_forum_posts():
 	print(str(posts))
 	return posts
 
-def getForumPost(id):
+def get_forum_post(id):
 	sql = "SELECT * FROM forum WHERE id = %s"	
 	database = db.DB()
 	database.cur.execute(sql, id)
 	return database.cur.fetchone()	
 
-def viewForumPost(id):
+def view_post_replies(id):
 	database = db.DB()
 	sql = "SELECT * FROM forum f left join users u on u.user_id = f.user_id WHERE id=%s"
 	post = database.fetchOne(sql, id)
 
 	if post is None:
 		msg = "This post does not exist"
-		return msg, '', False
+		return None
 	post['create_date'] = post['create_date'] - datetime.timedelta(minutes=int(float(session['offset'])))
 	post['update_date'] = post['update_date'] - datetime.timedelta(minutes=int(float(session['offset'])))
 	sql = "SELECT * FROM forum f left join users u on u.user_id = f.user_id WHERE parent_id=%s"
@@ -50,9 +50,10 @@ def viewForumPost(id):
 	for reply in replies:
 		reply['create_date'] = reply['create_date'] - datetime.timedelta(minutes=int(float(session['offset'])))
 		reply['update_date'] = reply['update_date'] - datetime.timedelta(minutes=int(float(session['offset'])))
-	return post, replies, msg
+	print(str(replies))
+	return replies
 
-def newForumPost(parent_id):
+def new_forum_post(parent_id):
 	form = rules.PostForm(request.form)
 	title = form.title.data
 	body = form.body.data
@@ -69,28 +70,27 @@ def newForumPost(parent_id):
 		msg = "Post created."
 		return msg, None
 	else:
-		updateParentTimestamp(parent_id)
+		update_parent_timestamp(parent_id)
 		msg = "Reply posted."	
 	return msg, parent_id
 
-def updateForumPost(title, body, id, parent_id):
+def update_forum_post(title, body, id, parent_id):
 	database = db.DB()
 	sql = "UPDATE forum SET title=%s, body=%s, user_id=%s, update_date = %s WHERE id=%s"
 	database.cur.execute(sql, (title, body, session['user_id'], datetime.datetime.utcnow(), id))
 	database.connection.commit()
 	if parent_id is not None:
-		updateParentTimestamp(parent_id)
+		update_parent_timestamp(parent_id)
 	database.cur.close()
 
-def updateParentTimestamp(parent_id):
+def update_parent_timestamp(parent_id):
 	database = db.DB()
 	sql = "UPDATE forum SET update_date=%s WHERE id=%s"
 	database.cur.execute(sql, (datetime.datetime.utcnow(), parent_id))
 	database.connection.commit()
 	database.cur.close()
 
-
-def deleteForumPost(id):
+def delete_forum_post(id):
 	sql = "SELECT user_id FROM forum WHERE id=%s"
 	database = db.DB()
 	database.cur.execute(sql, id)
