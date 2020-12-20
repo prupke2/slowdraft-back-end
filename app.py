@@ -60,7 +60,6 @@ def login(code):
     print('Warning: No code provided.')
     return jsonify({'response': 'No code provided'}) 
 
-
 @app.route('/check_login')
 def check_login():
   if 'access_token' in session and 'refresh_token' in session:
@@ -79,6 +78,7 @@ def check_login():
     }
   )
 
+
 @app.route('/get_league')
 def league():
   return jsonify({'league': get_league()})
@@ -94,9 +94,20 @@ def players():
   skaters, skater_stats, goalies, goalie_stats = get_players(sortby, sortdir, position, player_search, offset)
   return jsonify({'players': skaters})
 
+@app.route('/get_db_players')
+def get_players_from_db():
+  position = request.args.get('position', default='skaters')
+  exclude_taken_players = request.args.get('exclude_taken', default=True)
+  return jsonify({'players': get_db_players(position, exclude_taken_players)})
+
 @app.route('/get_forum_posts')
 def forum():
   return jsonify({"posts": get_forum_posts()})
+
+@app.route('/view_post_replies/<int:post_id>')
+def view_forum_post(post_id):
+  return jsonify({"replies": view_post_replies(post_id)})
+
 
 @app.route('/test')
 def time():
