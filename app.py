@@ -8,10 +8,12 @@ import xmltodict
 from models.league import *
 from models.players import *
 from models.forum import *
+from models.status import *
 from yahoo_api import *
 import db
 import datetime
 import pymysql
+import download_players
 
 app = Flask(__name__, 
   static_url_path='',
@@ -79,6 +81,10 @@ def check_login():
   )
 
 
+@app.route('/get_teams_in_league')
+def get_teams():
+  return jsonify({'league': get_teams_in_league()})
+
 @app.route('/get_league')
 def league():
   return jsonify({'league': get_league()})
@@ -109,10 +115,12 @@ def view_forum_post(post_id):
   return jsonify({"replies": view_post_replies(post_id)})
 
 
-@app.route('/test')
-def time():
-  response = {'test': 'test worked'}
-  return jsonify(response)
+# @app.route('/test')
+# def time():
+#   download_players.scrapePlayersFromYahoo()
+
+#   response = {'test': 'test worked'}
+#   return jsonify(response)
 
 if __name__== '__main__':
   import credentials
