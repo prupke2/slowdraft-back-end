@@ -4,13 +4,13 @@ import yahoo_api
 import db
 # import oauth
 import config
-from wtforms import Form, HiddenField
+# from wtforms import Form, HiddenField
 # from nhl_api import checkIfProspect
 
-class saveKeepersForm(Form):
-	keys_input = HiddenField('keys_input')
+# class save_keepersForm(Form):
+# 	keys_input = HiddenField('keys_input')
 
-def getTeamFromDB(team_id):
+def get_team_from_db(team_id):
 	database = db.DB()
 	sql = "SELECT ut.is_keeper, y.* FROM user_team ut \
 			JOIN yahoo_db_19 y ON y.player_id = ut.player_id \
@@ -32,9 +32,9 @@ def getTeamFromDB(team_id):
 	
 	return skaters, skaters, goalies, goalies
 
-def getYahooTeam(team_id):
+def get_yahoo_team(team_id):
 	ROSTER_URL = YAHOO_BASE_URL + "team/" + config.league_key + ".t." + team_id + "/roster"
-	roster = yahoo_api.yahooApi(ROSTER_URL)
+	roster = yahoo_api.yahoo_request(ROSTER_URL)
 	if roster == '':
 		return '','','','';	
 
@@ -42,10 +42,10 @@ def getYahooTeam(team_id):
 	my_goalies = []
 	return roster['fantasy_content']['team']['name']		
 
-def getYahooTeamPlayers(team_id):
+def get_yahoo_team_players(team_id):
  
 	ROSTER_URL = YAHOO_BASE_URL + "team/" + config.league_key + ".t." + team_id + "/roster"
-	roster = yahoo_api.yahooApi(ROSTER_URL)
+	roster = yahoo_api.yahoo_request(ROSTER_URL)
 	if roster == '':
 		return '','','','';	
 
@@ -68,23 +68,23 @@ def getYahooTeamPlayers(team_id):
 		else:
 			my_skaters.append(player_data)
 
-	skater_keys = yahoo_api.organizePlayerKeys(my_skaters)	
-	goalie_keys = yahoo_api.organizePlayerKeys(my_goalies)	
+	skater_keys = yahoo_api.organize_player_keys(my_skaters)	
+	goalie_keys = yahoo_api.organize_player_keys(my_goalies)	
 
 	# print("\n\nGOALIE KEYS: " + goalie_keys)
 
 	MY_SKATERS_URL = YAHOO_BASE_URL + "players;player_keys=" + skater_keys + "/stats;date=2018"
-	my_skater_stats = yahoo_api.yahooApi(MY_SKATERS_URL)
+	my_skater_stats = yahoo_api.yahoo_request(MY_SKATERS_URL)
 
 	MY_GOALIES_URL = YAHOO_BASE_URL + "players;player_keys=" + goalie_keys + "/stats;date=2018"
-	my_goalie_stats = yahoo_api.yahooApi(MY_GOALIES_URL)
+	my_goalie_stats = yahoo_api.yahoo_request(MY_GOALIES_URL)
 
 	skater_stats = yahoo_api.organizeStatData(my_skater_stats)
 	goalie_stats = yahoo_api.organizeStatData(my_goalie_stats)
 
 	return team, my_skaters, skater_stats, my_goalies, goalie_stats
 
-def getUserId():
+def get_user_id():
 	database = db.DB()
 	sql = "SELECT user_id, time_zone_offset FROM users WHERE yahoo_league_id = %s AND yahoo_team_id = %s"
 	database.cur.execute(sql, (session['yahoo_league_id'], session['team_id']))
@@ -92,7 +92,7 @@ def getUserId():
 	session['user_id'] = result['user_id']
 	session['time_zone_offset'] = result['time_zone_offset']
 
-def setNewUserId(team_id):
+def set_new_user_id(team_id):
 	database = db.DB()
 	sql = "SELECT user_id, username FROM users WHERE yahoo_league_id = %s AND yahoo_team_id = %s"
 	query = database.cur.execute(sql, (session['yahoo_league_id'], team_id))
@@ -104,14 +104,14 @@ def setNewUserId(team_id):
 	else:
 		return False, False
 
-def checkIfKeepers(team_id):
+def check_if_keepers(team_id):
 	database = db.DB()
 	sql = "SELECT player_id FROM user_team WHERE user_id = %s AND draft_id = %s"
 	sql = "SELECT player_id FROM user_team ut INNER JOIN users u ON u.user_id = ut.user_id WHERE u.yahoo_team_id = %s AND ut.draft_id = %s"
 	database.cur.execute(sql, (team_id, session['draft_id']))
 	return database.cur.fetchall()	
 
-def checkValidityOfKeepers(keys):
+def check_validity_of_keepers(keys):
 	database = db.DB()
 	sql = "SELECT * FROM yahoo_db_19 WHERE player_id IN (" + keys + ")"
 	result = database.cur.execute(sql)
@@ -139,14 +139,14 @@ def checkValidityOfKeepers(keys):
 	else:
 		return keepers, True		
 			
-def deleteKeepers():
+def delete_keepers():
 	database = db.DB()
 	sql = "DELETE FROM user_team WHERE user_id = %s AND draft_id = %s"		
 	database.cur.execute(sql, (session['user_id'], session['draft_id']))
 	database.connection.commit()
 
 
-def saveKeepers(keepers):
+def save_keepers(keepers):
 	database = db.DB()
 	for keeper in keepers:
 		sql = "INSERT INTO user_team(user_id, draft_id, player_id, is_keeper, NHLid) VALUES(%s, %s, %s, %s, %s)"

@@ -5,7 +5,7 @@ from models import emails
 from flask_mail import Mail, Message
 
 
-def getDraft():
+def get_draft():
 	database = db.DB()
 	database.cur.execute("SELECT * FROM draft WHERE draft_id = %s", session['draft_id'])
 	draft = database.cur.fetchone()
@@ -22,10 +22,10 @@ def getDraft():
                     " WHERE draft_id = %s ORDER BY draft_order"
 	user_count = database.cur.execute(sql, session['draft_id'])
 	# users = database.cur.fetchone()
-	users = getAllUsers()
+	users = get_all_users()
 	return draft, full_draft_date, user_count, draft_picks, users
 
-def getAllUsers():
+def get_all_users():
 	database = db.DB()
 	sql = "SELECT u.* FROM users u INNER JOIN draft d ON d.league_id = u.league_id \
 						  WHERE u.league_id = %s AND d.draft_id=%s"
@@ -33,7 +33,7 @@ def getAllUsers():
 	users = database.cur.fetchall()	
 	return users
 
-def changePick(new_user_id, overall_pick):
+def change_pick(new_user_id, overall_pick):
 	database = db.DB()
 	database.cur.execute("SELECT * FROM draft_picks dp INNER JOIN users u ON u.user_id = dp.user_id \
 					WHERE dp.overall_pick = %s AND draft_id=%s", (overall_pick, session['draft_id']))
@@ -55,7 +55,7 @@ def changePick(new_user_id, overall_pick):
 	database.cur.close()
 	return
 
-def setDraftPicks(rounds, snake):
+def set_draft_picks(rounds, snake):
 	overall_pick_count = 1
 	database = db.DB()
 	sql = "SELECT * FROM draft_order d INNER JOIN users u ON d.user_id = u.user_id WHERE d.draft_id = %s ORDER BY draft_order"
@@ -81,33 +81,33 @@ def setDraftPicks(rounds, snake):
 				overall_pick_count += 1
 
 
-def makePick(player_id, user_id):
-	pick = getEarliestPick(user_id)
+def make_pick(player_id, user_id):
+	pick = get_earliest_pick(user_id)
 	if pick is None:
 		return None, None, False
-	commitPick(player_id, pick['overall_pick'])
-	nextPick = checkNextPick(pick['overall_pick'])
+	commit_pick(player_id, pick['overall_pick'])
+	nextPick = check_next_pick(pick['overall_pick'])
 	if nextPick is None:
-		setDraftingNow(user_id, 0)
+		set_drafting_now(user_id, 0)
 		return None, None, False
 	else:
 		if user_id != nextPick['user_id']:
 			# and (user_id not in (131, 132, 136, 137)):
 			draftingAgain = False
-			setDraftingNow(user_id, 0)
-			setDraftingNow(nextPick['user_id'], 1)
+			set_drafting_now(user_id, 0)
+			set_drafting_now(nextPick['user_id'], 1)
 		else:
 			draftingAgain = True	
-	player = getOnePlayerFromDB(player_id)
+	player = get_one_player_from_db(player_id)
 	return player, nextPick, draftingAgain
 
-def getOnePlayerFromDB(player_id):
+def get_one_player_from_db(player_id):
 	database = db.DB()
 	sql = "SELECT * FROM yahoo_db_19 WHERE player_id = %s"
 	database.cur.execute(sql, player_id)
 	return database.cur.fetchone()	
 
-def getEarliestPick(user_id):
+def get_earliest_pick(user_id):
 	database = db.DB()
 	sql = """ SELECT d.*, u.name, u.email
 			FROM draft_picks d
@@ -120,7 +120,7 @@ def getEarliestPick(user_id):
 	database.cur.execute(sql, (session['draft_id'], user_id))
 	return database.cur.fetchone()
 
-def commitPick(player_id, pick):
+def commit_pick(player_id, pick):
 	database = db.DB()
 	sql = """ UPDATE draft_picks
 			SET player_id = %s, draft_pick_timestamp = %s
@@ -136,7 +136,7 @@ def commitPick(player_id, pick):
 	database.connection.commit()	
 	return
 
-def checkNextPick(pick):
+def check_next_pick(pick):
 	database = db.DB()
 	sql = """ SELECT *
 			FROM draft_picks d
@@ -148,7 +148,7 @@ def checkNextPick(pick):
 	remainingPicks = database.cur.execute(sql, (session['draft_id'], pick))
 	nextPick = database.cur.fetchone()
 	if nextPick is None:
-		checkCurrentPickInDraft()
+		check_current_pick_in_draft()
 	else:	
 		print("Next pick: " + str(nextPick))
 		if nextPick['pick_expires'] is None:
@@ -163,7 +163,7 @@ def checkNextPick(pick):
 			database.connection.commit()
 	return nextPick
 
-def setDraftingNow(user_id, value):
+def set_drafting_now(user_id, value):
 	database = db.DB()
 	sql = """
 		UPDATE users
@@ -174,7 +174,7 @@ def setDraftingNow(user_id, value):
 	database.connection.commit()
 	return
 
-def getCurrentPickInfo(pick):
+def get_current_pick_info(pick):
 	database = db.DB()
 	sql = "SELECT * FROM users u INNER JOIN draft_picks dp ON dp.user_id = u.user_id \
 			WHERE dp.overall_pick = %s AND dp.draft_id = %s"
@@ -185,7 +185,7 @@ def getCurrentPickInfo(pick):
 	print(str(current_pick))
 	return current_pick
 
-def checkCurrentPickInDraft():
+def check_current_pick_in_draft():
 	database = db.DB()
 	sql = """SELECT *
 			FROM draft_picks d

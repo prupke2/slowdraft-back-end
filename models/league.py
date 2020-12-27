@@ -2,6 +2,7 @@ from app import *
 from config import *
 import yahoo_api
 import oauth.yahoo_oauth
+import db
 
 
 def get_teams_in_league():
@@ -29,18 +30,23 @@ def get_teams_in_league():
 
 			if session['guid'] == team['managers']['manager']['guid']:
 				session['team_id'] = team['team_id']
+				print(f"team['team_id']: {team['team_id']}")
 				session['logo'] = team_data['team_logo']
 				session['team_name'] = team_data['team_name']
 				# if ('user_id' not in session) or ('role' not in session):
 				database = db.DB()
 				sql = "SELECT * FROM users WHERE yahoo_league_id = %s AND yahoo_team_id = %s"
+				print(f"session['yahoo_league_id']: {session['yahoo_league_id']}")
 				database.cur.execute(sql, (session['yahoo_league_id'], session['team_id']))
 				user = database.cur.fetchone()
-				session['user_id'] = user['user_id']
-				session['role'] = user['role']
-				session['league_id'] = user['league_id']
-				session['color'] = user['color']
-				# config.team_id = team['team_id']
+				if user is None:
+					print(f"No user found with yahoo_league_id #{session['yahoo_league_id']}")
+				else:
+					session['user_id'] = user['user_id']
+					session['role'] = user['role']
+					session['league_id'] = user['league_id']
+					session['color'] = user['color']
+					# config.team_id = team['team_id']
 
 			teams.append(team_data)
 
