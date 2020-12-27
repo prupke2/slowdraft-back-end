@@ -123,3 +123,4 @@ dmypy.json
 
 # local config
 credentials.py
+download_players.py
