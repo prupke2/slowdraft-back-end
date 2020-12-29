@@ -32,6 +32,7 @@ def get_access_token(client_id, client_secret, redirect_uri, code):
 		token_response=response.json()
 		session['access_token'] = token_response['access_token']
 		session['refresh_token'] = token_response['refresh_token']
+		session['guid'] = token['xoauth_yahoo_guid']
 		return True
 	else:
 		return False
