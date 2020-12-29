@@ -14,8 +14,10 @@ def get_forum_posts():
 	
 	if 'offset' not in session:
 		session['offset'] = -5
+	
+
 	sql = ("SELECT f.*, u.username AS 'user', u.role, u.color, u.user_id \
-		FROM forum f left join users u on u.yahoo_team_id = f.yahoo_team_id \
+		FROM forum f INNER JOIN users u on u.yahoo_team_id = f.yahoo_team_id \
 		WHERE f.parent_id IS NULL \
 		AND f.yahoo_league_id = %s \
 		ORDER BY update_date DESC")
@@ -25,7 +27,7 @@ def get_forum_posts():
 	for post in posts:
 		post['create_date'] = post['create_date'] - datetime.timedelta(minutes=int(float(session['offset'])))
 		post['update_date'] = post['update_date'] - datetime.timedelta(minutes=int(float(session['offset'])))
-	print(str(posts))
+	# print(str(posts))
 	return posts
 
 def get_forum_post(id):
@@ -45,34 +47,26 @@ def view_post_replies(id):
 	post['create_date'] = post['create_date'] - datetime.timedelta(minutes=int(float(session['offset'])))
 	post['update_date'] = post['update_date'] - datetime.timedelta(minutes=int(float(session['offset'])))
 	sql = "SELECT * FROM forum f left join users u on u.user_id = f.user_id WHERE parent_id=%s"
+	# print(f"sql: {sql}")
 	replies = database.fetchAll(sql, id)
 	msg = False
 	for reply in replies:
 		reply['create_date'] = reply['create_date'] - datetime.timedelta(minutes=int(float(session['offset'])))
 		reply['update_date'] = reply['update_date'] - datetime.timedelta(minutes=int(float(session['offset'])))
-	print(str(replies))
 	return replies
 
-def new_forum_post(parent_id):
-	form = rules.PostForm(request.form)
-	title = form.title.data
-	body = form.body.data
+def new_forum_post(post):
+	print("In forum.new_forum_post")
 	time = datetime.datetime.utcnow()
 
 	sql = "INSERT INTO forum(title, body, user_id, league_id, yahoo_league_id, yahoo_team_id, create_date, update_date, parent_id) \
 			VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s)"
 
 	database = db.DB()
-	database.cur.execute(sql, (title, body, session['user_id'], session['league_id'], session['yahoo_league_id'], \
-		session['team_id'], time, time, parent_id))
+	database.cur.execute(sql, (post['title'], post['body'], session['user_id'], session['league_id'], session['yahoo_league_id'], \
+		session['team_id'], time, time, post['parentId']))
 	database.connection.commit()
-	if parent_id is None:
-		msg = "Post created."
-		return msg, None
-	else:
-		update_parent_timestamp(parent_id)
-		msg = "Reply posted."	
-	return msg, parent_id
+	return
 
 def update_forum_post(title, body, id, parent_id):
 	database = db.DB()
