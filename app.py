@@ -47,6 +47,7 @@ def login(code):
           'success': True,
           'access_token': session['access_token'],
           'refresh_token': session['refresh_token'],
+          'guid': session['guid'],
           'pub': config.pubnub_publish_key, 
           'sub': config.pubnub_subscribe_key
         }
@@ -80,6 +81,11 @@ def check_login():
     }
   )
 
+@app.route('/get_team_session')
+def get_team_session():
+  print("Getting team sessions")
+  set_team_sessions()
+  return jsonify({'user_id': session['user_id'], 'logo': session['logo'], 'team_name': session['team_name']})
 
 @app.route('/get_teams_in_league')
 def get_teams():
@@ -103,7 +109,7 @@ def players():
 @app.route('/get_db_players')
 def get_players_from_db():
   position = request.args.get('position', default='skaters')
-  exclude_taken_players = request.args.get('exclude_taken', default=True)
+  exclude_taken_players = request.args.get('exclude_taken', default=False)
   return jsonify({'players': get_db_players(position, exclude_taken_players)})
 
 @app.route('/get_forum_posts')
@@ -114,6 +120,14 @@ def forum():
 def view_forum_post(post_id):
   return jsonify({"replies": view_post_replies(post_id)})
 
+@app.route('/new_forum_post', methods=['POST'])
+def post_to_forum():
+  print("new_forum_post hit")
+  post = json.loads(request.data)
+  print(f"post: {post}")
+  print(f"post title: {post['title']}")
+  new_forum_post(post)
+  return jsonify({"success": True})
 
 # @app.route('/test')
 # def time():
