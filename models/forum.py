@@ -20,10 +20,11 @@ def get_forum_posts():
 		FROM forum f INNER JOIN users u on u.yahoo_team_id = f.yahoo_team_id \
 		WHERE f.parent_id IS NULL \
 		AND f.yahoo_league_id = %s \
+		AND u.yahoo_league_id = %s \
 		ORDER BY update_date DESC")
 
 	database = db.DB()
-	posts = database.fetchAll(sql, session['yahoo_league_id'])
+	posts = database.fetchAll(sql, [session['yahoo_league_id'], session['yahoo_league_id']])
 	for post in posts:
 		post['create_date'] = post['create_date'] - datetime.timedelta(minutes=int(float(session['offset'])))
 		post['update_date'] = post['update_date'] - datetime.timedelta(minutes=int(float(session['offset'])))

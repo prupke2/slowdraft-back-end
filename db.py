@@ -25,7 +25,7 @@ class DB(object):
 
 	def fetchAll(self, sql, params):
 		try:
-			self.cur.execute(sql, [params])
+			self.cur.execute(sql, params)
 			return self.cur.fetchall()    
 		except Exception:
 			return False
