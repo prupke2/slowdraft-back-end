@@ -7,6 +7,8 @@ from flask_mail import Mail, Message
 
 def get_draft():
 	database = db.DB()
+	if draft_id not in session:
+		session['draft_id'] = config.draft_id
 	database.cur.execute("SELECT * FROM draft WHERE draft_id = %s", session['draft_id'])
 	draft = database.cur.fetchone()
 	draft_start_time = draft['draft_start_time_utc']
@@ -14,7 +16,7 @@ def get_draft():
 
 	sql = "SELECT d.*, u.*, y.player_id, y.name AS player_name, y.prospect, y.careerGP, y.team, y.position \
 		 FROM draft_picks d INNER JOIN users u ON u.user_id = d.user_id"
-	sql += " LEFT JOIN yahoo_db_19 y ON y.player_id = d.player_id WHERE d.draft_id = %s ORDER BY overall_pick"
+	sql += " LEFT JOIN yahoo_db_20 y ON y.player_id = d.player_id WHERE d.draft_id = %s ORDER BY overall_pick"
 	database.cur.execute(sql, session['draft_id'])
 	draft_picks = database.cur.fetchall()
 
