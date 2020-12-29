@@ -18,6 +18,50 @@ def check_league(f):
 		return f(*args, **kwargs)
 	return wrap		
 
+
+def set_team_sessions():
+	# this function will only run if your team_id isn't already set 
+	if team_id is not None:	
+		TEAM_URL = config.YAHOO_BASE_URL + "league/" + config.league_key + "/teams"
+		team_query = yahoo_api.yahoo_request(TEAM_URL)
+		session['yahoo_league_id'] = team_query['fantasy_content']['league']['league_id']
+		teams = []
+		for team in team_query['fantasy_content']['league']['teams']['team']:
+			team_data = {}
+			# # print("TEAM: " + str(team))
+			# team_data['team_id'] = team['team_id']
+			# team_data['user'] = team['managers']['manager']['nickname']
+			# team_data['user_logo'] = team['managers']['manager']['image_url']
+			# team_data['team_name'] = team['name']
+			# team_data['team_logo'] = team['team_logos']['team_logo']['url']
+			# team_data['waiver_priority'] = team['waiver_priority']
+
+			# # some managers choose not to share their email, so this sets it to empty if that is the case
+			# try:
+			# 	team_data['email'] = team['managers']['manager']['email']
+			# except:
+			# 	team_data['email'] = ""	
+
+			if session['guid'] == team['managers']['manager']['guid']:
+				print(f"team: {team}")
+				session['team_id'] = team['team_id']
+				session['logo'] = team['team_logos']['team_logo']['url']
+				session['team_name'] = team['name']
+				# if ('user_id' not in session) or ('role' not in session):
+				database = db.DB()
+				sql = "SELECT * FROM users WHERE yahoo_league_id = %s AND yahoo_team_id = %s"
+				database.cur.execute(sql, (session['yahoo_league_id'], session['team_id']))
+				user = database.cur.fetchone()
+				session['user_id'] = user['user_id']
+				session['role'] = user['role']
+				session['league_id'] = user['league_id']
+				session['color'] = user['color']
+				# config.team_id = team['team_id']
+
+			# teams.append(team_data)
+
+	return
+
 def check_draft_status(f):
 	@wraps(f)
 	def wrap(*args, **kwargs):
