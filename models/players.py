@@ -12,10 +12,10 @@ import db
 def get_db_players(position, exclude_taken_players):
 	database = db.DB()
 	if position == "G":
-		query = "SELECT name, position, prospect, player_id, player_key, team, careerGP, `18`, " \
-					+ "`19`, `22`, CAST(`23` AS CHAR) AS `23`, `24`, `25`, `26` FROM yahoo_db_19 y "
+		query = "SELECT y.name, y.position, y.prospect, y.player_id, y.player_key, y.team, y.careerGP, `18`, " \
+					+ "`19`, `22`, CAST(`23` AS CHAR) AS `23`, `24`, `25`, `26` FROM yahoo_db_20 y "
 	else:
-		query = "SELECT * FROM yahoo_db_19 y "
+		query = "SELECT * FROM yahoo_db_20 y "
 	if exclude_taken_players == True:
 		query += "WHERE NOT EXISTS (SELECT player_id FROM user_team ut WHERE ut.player_id = y.player_id) AND "
 	else:
@@ -26,14 +26,14 @@ def get_db_players(position, exclude_taken_players):
 	else:
 		query += "position != 'G' "
 	
-	print(str(query))
+	# print(str(query))
 	result = database.cur.execute(query)	
 	players = database.cur.fetchall()
 	player_array = []
 	for player in players:
 		player_array.append(player)
 	
-	print(f"player_array: {player_array}")
+	# print(f"player_array: {player_array}")
 	return players
 
 def get_players(sortby, sortdir, position, player_search, offset):
