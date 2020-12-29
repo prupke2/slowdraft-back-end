@@ -9,11 +9,12 @@ from models.league import *
 from models.players import *
 from models.forum import *
 from models.status import *
+from models.draft import *
 from yahoo_api import *
 import db
 import datetime
 import pymysql
-# import download_players
+import download_players
 
 app = Flask(__name__, 
   static_url_path='',
@@ -95,16 +96,20 @@ def get_teams():
 def league():
   return jsonify({'league': get_league()})
 
-@app.route('/get_players')
-def players():
-  sortby = request.args.get('sortby', default=3)
-  sortdir = request.args.get('sortdir', default=0)
-  position = request.args.get('position', default='LW,RW,C')
-  player_search = request.args.get('player_search', default='')
-  showdrafted = request.args.get('showdrafted', default='False')
-  offset = request.args.get('offset', default='0')
-  skaters, skater_stats, goalies, goalie_stats = get_players(sortby, sortdir, position, player_search, offset)
-  return jsonify({'players': skaters})
+# @app.route('/get_players')
+# def players():
+#   sortby = request.args.get('sortby', default=3)
+#   sortdir = request.args.get('sortdir', default=0)
+#   position = request.args.get('position', default='LW,RW,C')
+#   player_search = request.args.get('player_search', default='')
+#   showdrafted = request.args.get('showdrafted', default='False')
+#   offset = request.args.get('offset', default='0')
+#   skaters, skater_stats, goalies, goalie_stats = get_players(sortby, sortdir, position, player_search, offset)
+#   return jsonify({'players': skaters})
+
+# @app.route('/get_yahoo_team_players')
+# def get_team_players():
+#   return jsonify({'players': get_yahoo_team_players(session['team_id'])})
 
 @app.route('/get_db_players')
 def get_players_from_db():
@@ -129,12 +134,15 @@ def post_to_forum():
   new_forum_post(post)
   return jsonify({"success": True})
 
-# @app.route('/test')
-# def time():
-#   download_players.scrapePlayersFromYahoo()
+@app.route('/test')
+def time():
+  # download_players.scrapePlayersFromYahoo()
+  session['draft_id'] = config.draft_id
+  set_draft_picks(14, False)
+  
 
-#   response = {'test': 'test worked'}
-#   return jsonify(response)
+  response = {'test': 'test worked'}
+  return jsonify(response)
 
 if __name__== '__main__':
   import credentials
@@ -157,6 +165,7 @@ if __name__== '__main__':
   database = db.DB() 
 
   config.yahoo_league_id = credentials.yahoo_league_id
+  config.draft_id = credentials.draft_id
 
   app.run(use_reloader=True, port=5000, threaded=True, debug=True)
 else:
@@ -175,6 +184,7 @@ else:
 	# get Yahoo league credentials
   if 'game_key' in os.environ and 'league_id' in os.environ:
     config.league_key = os.environ['game_key'] + ".l." + os.environ['league_id']
+    config.draft_id = os.environ['draft_id']
 
   # get DB config
   if 'MYSQL_HOST' in os.environ:
