@@ -151,8 +151,13 @@ def get_draft_picks():
   if 'role' not in session:
     session['role'] = 'admin'
   session['league_id'] = config.league_id
-  draft, full_draft_date, user_count, draft_picks, users = get_draft()
-  return jsonify({'picks': draft_picks, 'role': session['role']})
+  draft, draft_start_time, draft_picks, current_pick = get_draft()
+  return jsonify({'draft': draft, 'picks': draft_picks, 'current_pick': current_pick, 'role': session['role']})
+
+@app.route('/draft/<int:player_id>')
+def draft_player(player_id):
+  player, nextPick, draftingAgain = make_pick(player_id, session['user_id'])
+  return jsonify({'player': player, 'next_pick': nextPick, 'drafting_again': draftingAgain})
 
 @app.route('/update_pick', methods=['POST'])
 def update_pick():
