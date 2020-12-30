@@ -134,15 +134,20 @@ def post_to_forum():
   new_forum_post(post)
   return jsonify({"success": True})
 
-@app.route('/test')
-def time():
-  # download_players.scrapePlayersFromYahoo()
-  session['draft_id'] = config.draft_id
-  set_draft_picks(14, False)
+# @app.route('/test')
+# def time():
+#   # download_players.scrapePlayersFromYahoo()
+#   session['draft_id'] = config.draft_id
+#   set_draft_picks(14, False)
   
 
-  response = {'test': 'test worked'}
-  return jsonify(response)
+#   response = {'test': 'test worked'}
+#   return jsonify(response)
+
+@app.route('/get_draft')
+def get_draft_picks():
+  draft, full_draft_date, user_count, draft_picks, users = get_draft()
+  return jsonify({"picks": draft_picks})
 
 if __name__== '__main__':
   import credentials
