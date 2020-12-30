@@ -148,9 +148,18 @@ def post_to_forum():
 
 @app.route('/get_draft')
 def get_draft_picks():
+  if 'role' not in session:
+    session['role'] = 'admin'
   session['league_id'] = config.league_id
   draft, full_draft_date, user_count, draft_picks, users = get_draft()
-  return jsonify({"picks": draft_picks})
+  return jsonify({'picks': draft_picks, 'role': session['role']})
+
+@app.route('/update_pick', methods=['POST'])
+def update_pick():
+  post = json.loads(request.data)
+  print(f"post: {post}")
+  change_pick(post['user_id'], post['overall_pick'])
+  return jsonify({'success': True})
 
 if __name__== '__main__':
   import credentials
@@ -162,7 +171,7 @@ if __name__== '__main__':
   config.redirect_uri = "oob"
 
   # get Yahoo league credentials
-  config.league_key = credentials.game_key + ".l." + credentials.league_id
+  config.league_key = credentials.game_key + ".l." + credentials.yahoo_league_id
 
   # get Pubnub credentials (for chat)
   config.pubnub_publish_key = credentials.pubnub_publish_key
@@ -191,8 +200,8 @@ else:
     config.pubnub_subscribe_key = os.environ['pubnub_subscribe_key']
 
 	# get Yahoo league credentials
-  if 'game_key' in os.environ and 'league_id' in os.environ:
-    config.league_key = os.environ['game_key'] + ".l." + os.environ['league_id']
+  if 'game_key' in os.environ and 'yahoo_league_id' in os.environ:
+    config.league_key = os.environ['game_key'] + ".l." + os.environ['yahoo_league_id']
     config.draft_id = os.environ['draft_id']
 
   # get DB config
