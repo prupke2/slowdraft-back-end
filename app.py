@@ -200,7 +200,8 @@ else:
     database = db.DB()
 
   if 'yahoo_league_id' in os.environ:
-    config.yahoo_league_id = [os.environ['yahoo_league_id']]	
+    config.yahoo_league_id = [os.environ['yahoo_league_id']]
+    config.league_id = os.environ['league_id']
   @app.before_request
   def force_https():
     if request.endpoint in app.view_functions and not request.is_secure:
