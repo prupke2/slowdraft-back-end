@@ -1,14 +1,14 @@
 from app import *
 import db
 # from models import players
-from models import emails
-from flask_mail import Mail, Message
+# from models import emails
+# from flask_mail import Mail, Message
 
 
 def get_draft():
 	database = db.DB()
-	if draft_id not in session:
-		session['draft_id'] = config.draft_id
+	# if 'draft_id' not in session:
+	# 	session['draft_id'] = config.draft_id
 	database.cur.execute("SELECT * FROM draft WHERE draft_id = %s", session['draft_id'])
 	draft = database.cur.fetchone()
 	draft_start_time = draft['draft_start_time_utc']
@@ -19,6 +19,7 @@ def get_draft():
 	sql += " LEFT JOIN yahoo_db_20 y ON y.player_id = d.player_id WHERE d.draft_id = %s ORDER BY overall_pick"
 	database.cur.execute(sql, session['draft_id'])
 	draft_picks = database.cur.fetchall()
+	print(f"draft_picks: {draft_picks}")
 
 	sql = "SELECT * FROM draft_order do INNER JOIN users u ON u.user_id = do.user_id" \
                     " WHERE draft_id = %s ORDER BY draft_order"
