@@ -146,6 +146,7 @@ def post_to_forum():
 
 @app.route('/get_draft')
 def get_draft_picks():
+  session['league_id'] = config.league_id
   draft, full_draft_date, user_count, draft_picks, users = get_draft()
   return jsonify({"picks": draft_picks})
 
