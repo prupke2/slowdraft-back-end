@@ -84,6 +84,8 @@ def check_login():
 
 @app.route('/get_team_session')
 def get_team_session():
+  if 'access_token' not in session:
+    return jsonify({'error': 'Not logged in'})
   print("Getting team sessions")
   set_team_sessions()
   return jsonify({'user_id': session['user_id'], 'logo': session['logo'], 'team_name': session['team_name']})
