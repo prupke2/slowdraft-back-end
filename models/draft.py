@@ -12,7 +12,7 @@ def get_draft():
 	database.cur.execute("SELECT * FROM draft WHERE draft_id = %s", session['draft_id'])
 	draft = database.cur.fetchone()
 	draft_start_time = draft['draft_start_time_utc']
-	full_draft_date = datetime.datetime.strftime(draft['draft_start_time_utc'], '%A, %b %d, %Y at %I:%M %p')
+	# full_draft_date = datetime.datetime.strftime(draft['draft_start_time_utc'], '%A, %b %d, %Y at %I:%M %p')
 
 	sql = "SELECT d.*, u.*, y.player_id, y.name AS player_name, y.prospect, y.careerGP, y.team, y.position \
 		 FROM draft_picks d INNER JOIN users u ON u.user_id = d.user_id"
@@ -26,7 +26,7 @@ def get_draft():
 	user_count = database.cur.execute(sql, session['draft_id'])
 	# users = database.cur.fetchone()
 	users = get_all_users()
-	return draft, full_draft_date, user_count, draft_picks, users
+	return draft, draft_start_time, user_count, draft_picks, users
 
 def get_all_users():
 	database = db.DB()
