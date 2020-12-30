@@ -171,6 +171,7 @@ if __name__== '__main__':
   database = db.DB() 
 
   config.yahoo_league_id = credentials.yahoo_league_id
+  config.league_id = credentials.league_id
   config.draft_id = credentials.draft_id
 
   app.run(use_reloader=True, port=5000, threaded=True, debug=True)

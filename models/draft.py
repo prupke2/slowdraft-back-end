@@ -19,7 +19,6 @@ def get_draft():
 	sql += " LEFT JOIN yahoo_db_20 y ON y.player_id = d.player_id WHERE d.draft_id = %s ORDER BY overall_pick"
 	database.cur.execute(sql, session['draft_id'])
 	draft_picks = database.cur.fetchall()
-	print(f"draft_picks: {draft_picks}")
 
 	sql = "SELECT * FROM draft_order do INNER JOIN users u ON u.user_id = do.user_id" \
                     " WHERE draft_id = %s ORDER BY draft_order"
