@@ -19,13 +19,14 @@ def get_draft():
 	sql += " LEFT JOIN yahoo_db_20 y ON y.player_id = d.player_id WHERE d.draft_id = %s ORDER BY overall_pick"
 	database.cur.execute(sql, session['draft_id'])
 	draft_picks = database.cur.fetchall()
+	current_pick = get_current_pick_info(draft['current_pick'])
 
-	sql = "SELECT * FROM draft_order do INNER JOIN users u ON u.user_id = do.user_id" \
-                    " WHERE draft_id = %s ORDER BY draft_order"
-	user_count = database.cur.execute(sql, session['draft_id'])
+	# sql = "SELECT * FROM draft_order do INNER JOIN users u ON u.user_id = do.user_id" \
+  #                   " WHERE draft_id = %s ORDER BY draft_order"
+	# user_count = database.cur.execute(sql, session['draft_id'])
 	# users = database.cur.fetchone()
-	users = get_all_users()
-	return draft, draft_start_time, user_count, draft_picks, users
+	# users = get_all_users()
+	return draft, draft_start_time, draft_picks, current_pick
 
 def get_all_users():
 	database = db.DB()
@@ -101,6 +102,8 @@ def make_pick(player_id, user_id):
 		else:
 			draftingAgain = True	
 	player = get_one_player_from_db(player_id)
+	print(f"player: {player}")
+	print(f"nextPick: {nextPick}")
 	return player, nextPick, draftingAgain
 
 def get_one_player_from_db(player_id):
@@ -172,7 +175,7 @@ def set_drafting_now(user_id, value):
 		SET drafting_now = %s
 		WHERE user_id = %s
 	"""
-	database.cur.execute(sql, (value, user_id));
+	database.cur.execute(sql, (value, user_id))
 	database.connection.commit()
 	return
 
