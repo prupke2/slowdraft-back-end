@@ -115,6 +115,8 @@ def league():
 
 @app.route('/get_db_players')
 def get_players_from_db():
+  if 'draft_id' not in session:
+    session['draft_id'] = config.draft_id
   position = request.args.get('position', default='skaters')
   exclude_taken_players = request.args.get('exclude_taken', default=True)
   return jsonify({'players': get_db_players(position, exclude_taken_players)})

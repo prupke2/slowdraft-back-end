@@ -9,6 +9,7 @@ def get_draft():
 	database = db.DB()
 	if 'draft_id' not in session:
 		session['draft_id'] = config.draft_id
+	print(f"session['draft_id']: {session['draft_id']}")
 	database.cur.execute("SELECT * FROM draft WHERE draft_id = %s", session['draft_id'])
 	draft = database.cur.fetchone()
 	draft_start_time = draft['draft_start_time_utc']
