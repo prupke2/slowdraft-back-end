@@ -101,9 +101,11 @@ def make_pick(player_id, user_id):
 			set_drafting_now(nextPick['user_id'], 1)
 		else:
 			draftingAgain = True	
-	player = get_one_player_from_db(player_id)
-	print(f"player: {player}")
+	player_data = get_one_player_from_db(player_id)
+	print(f"player: {player_data}")
 	print(f"nextPick: {nextPick}")
+	player = []
+	player.extend((player_data['name'], player_data['position'], player_data['team']))
 	return player, nextPick, draftingAgain
 
 def get_one_player_from_db(player_id):
