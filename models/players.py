@@ -17,16 +17,16 @@ def get_db_players(position, exclude_taken_players):
 	else:
 		query = "SELECT * FROM yahoo_db_20 y "
 	if exclude_taken_players == True:
-		query += "WHERE NOT EXISTS (SELECT player_id FROM user_team ut WHERE ut.player_id = y.player_id) AND "
+		query += f"WHERE NOT EXISTS (SELECT player_id FROM user_team ut WHERE ut.player_id = y.player_id AND ut.draft_id = {str(session['draft_id'])} ) AND "
 	else:
 		query += "LEFT JOIN user_team ut ON ut.player_id = y.player_id LEFT JOIN users u ON u.user_id = ut.user_id WHERE "
 
 	if position == "G":
-		query += "position = 'G' "
+		query += "position = 'G';"
 	else:
-		query += "position != 'G' "
+		query += "position != 'G';"
 	
-	# print(str(query))
+	print(str(query))
 	result = database.cur.execute(query)	
 	players = database.cur.fetchall()
 	player_array = []
