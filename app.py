@@ -11,6 +11,7 @@ from models.forum import *
 from models.status import *
 from models.draft import *
 from models.team import *
+from models.rules import *
 from yahoo_api import *
 import db
 import datetime
@@ -89,7 +90,8 @@ def get_team_session():
     return jsonify({'error': 'Not logged in'})
   print("Getting team sessions")
   set_team_sessions()
-  return jsonify({'user_id': session['user_id'], 'logo': session['logo'], 'team_name': session['team_name']})
+  return jsonify({'user_id': session['user_id'], 'logo': session['logo'], 'team_name': session['team_name'], \
+    'role': session['role'], 'color': session['color']})
 
 # @app.route('/get_teams_in_league')
 # def get_teams():
@@ -126,6 +128,16 @@ def get_players_from_db():
 def forum():
   return jsonify({"posts": get_forum_posts()})
 
+@app.route('/get_all_rules')
+def get_all_rules():
+  return jsonify({"rules": get_rules()})
+
+@app.route('/create_rule', methods=['POST'])
+def create_rule():
+  post = json.loads(request.data)
+  new_rule(post)
+  return jsonify({"success": True})
+
 @app.route('/view_post_replies/<int:post_id>')
 def view_forum_post(post_id):
   return jsonify({"replies": view_post_replies(post_id)})
@@ -151,11 +163,9 @@ def post_to_forum():
 
 @app.route('/get_draft')
 def get_draft_picks():
-  if 'role' not in session:
-    session['role'] = 'admin'
   session['league_id'] = config.league_id
   draft, draft_start_time, draft_picks, current_pick = get_draft()
-  return jsonify({'draft': draft, 'picks': draft_picks, 'current_pick': current_pick, 'role': session['role']})
+  return jsonify({'draft': draft, 'picks': draft_picks, 'current_pick': current_pick})
 
 @app.route('/draft/<int:player_id>')
 def draft_player(player_id):
