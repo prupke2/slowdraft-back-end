@@ -10,6 +10,7 @@ from models.players import *
 from models.forum import *
 from models.status import *
 from models.draft import *
+from models.team import *
 from yahoo_api import *
 import db
 import datetime
@@ -90,9 +91,9 @@ def get_team_session():
   set_team_sessions()
   return jsonify({'user_id': session['user_id'], 'logo': session['logo'], 'team_name': session['team_name']})
 
-@app.route('/get_teams_in_league')
-def get_teams():
-  return jsonify({'league': get_teams_in_league()})
+# @app.route('/get_teams_in_league')
+# def get_teams():
+#   return jsonify({'league': get_teams_in_league()})
 
 @app.route('/get_league')
 def league():
@@ -139,13 +140,13 @@ def post_to_forum():
   return jsonify({"success": True})
 
 # @app.route('/test')
-# def time():
+# def test():
 #   # download_players.scrapePlayersFromYahoo()
 #   session['draft_id'] = config.draft_id
-#   set_draft_picks(14, False)
-  
+#   # set_draft_picks(14, False)
+#   teams = get_teams_from_db()
 
-#   response = {'test': 'test worked'}
+#   response = {'test': teams}
 #   return jsonify(response)
 
 @app.route('/get_draft')
@@ -167,6 +168,12 @@ def update_pick():
   print(f"post: {post}")
   change_pick(post['user_id'], post['overall_pick'])
   return jsonify({'success': True})
+
+@app.route('/get_teams')
+def get_teams():
+  if 'draft_id' not in session:
+    session['draft_id'] = config.draft_id
+  return jsonify({'teams': get_teams_from_db()})
 
 if __name__== '__main__':
   import credentials

@@ -10,27 +10,18 @@ import config
 # class save_keepersForm(Form):
 # 	keys_input = HiddenField('keys_input')
 
-def get_team_from_db(team_id):
+def get_teams_from_db():
 	database = db.DB()
-	sql = "SELECT ut.is_keeper, y.* FROM user_team ut \
-			JOIN yahoo_db_19 y ON y.player_id = ut.player_id \
+	sql = "SELECT u.yahoo_team_id, u.username, ut.is_keeper, y.name, y.team, y.position, y.prospect \
+			FROM user_team ut \
+			JOIN yahoo_db_20 y ON y.player_id = ut.player_id \
 			JOIN users u ON ut.user_id = u.user_id \
-			WHERE u.yahoo_team_id = %s AND draft_id = %s \
-			ORDER BY FIELD(y.position, 'LW', 'C', 'RW', 'RW/C', 'RW/LW', \
+			WHERE draft_id = %s \
+			ORDER BY u.yahoo_team_id, FIELD(y.position, 'LW', 'C', 'RW', 'RW/C', 'RW/LW', \
 				 'C/LW/RW', 'C/LW', 'C/RW', 'LW/RW', 'LW/C', 'LW/D', 'D/LW', 'RW/D', 'D/RW', 'D')"
-	print(str(sql))		
-	database.cur.execute(sql, (team_id, session['draft_id']))
+	database.cur.execute(sql, (session['draft_id']))
 	players = database.cur.fetchall()	
-	print(str(players))
-	skaters = []
-	goalies = []
-	for player in players:
-		if player['position'] == 'G':
-			goalies.append(player)
-		else:
-			skaters.append(player)	
-	
-	return skaters, skaters, goalies, goalies
+	return players
 
 def get_yahoo_team(team_id):
 	ROSTER_URL = YAHOO_BASE_URL + "team/" + config.league_key + ".t." + team_id + "/roster"
