@@ -2,23 +2,20 @@ from app import *
 import db
 import config
 
-class PostForm(Form):
-	title = StringField('Title', [validators.Length(min=1, max=200)])
-	body = TextAreaField('Body', [validators.Length(min=1, max=20000)])
-
-def getRules():
+def get_rules():
 	database = db.DB()
-	database.cur.execute("SELECT * FROM rules WHERE yahoo_league_id = %s ORDER BY `order`", [session['yahoo_league_id']])
+	database.cur.execute("SELECT * FROM rules WHERE league_id = %s ORDER BY `order`", [session['league_id']])
 	return database.cur.fetchall()
 
-def newRule(title, body):
+def new_rule(post):
 	database = db.DB()
 	sql = "INSERT INTO rules(title, body, league_id, yahoo_league_id) VALUES(%s, %s, %s, %s)"
-	database.cur.execute(sql, (title, body, session['league_id'], session['yahoo_league_id']))
+	print(f"sql: {sql}")
+	database.cur.execute(sql, (post['title'], post['body'], session['league_id'], session['yahoo_league_id']))
 	database.connection.commit()
 	return
 
-def editRule(id):
+def edit_rule(id):
 	database = db.DB()
 	result = database.cur.execute("SELECT * FROM rules WHERE rule_id=%s", [id])
 	if result == 0:
@@ -29,13 +26,13 @@ def editRule(id):
 		return redirect(url_for('rules'))
 	return rule	
 	
-def updateRule(title, body, id):
+def update_rule(title, body, id):
 	database = db.DB()
 	sql = "UPDATE rules SET title=%s, body=%s, league_id=%s, yahoo_league_id=%s WHERE rule_id=%s"
 	database.cur.execute(sql, (title, body, session['league_id'], session['yahoo_league_id'], id))
 	database.connection.commit()
 
-def deleteRule(id):
+def delete_rule(id):
 	database = db.DB()
 	database.cur.execute("SELECT * FROM rules WHERE rule_id=%s", [id])
 	rule = database.cur.fetchone()
