@@ -1,9 +1,7 @@
 from app import *
 import db
 # from models import players
-# from models import emails
-# from flask_mail import Mail, Message
-
+from models import emails
 
 def get_draft():
 	database = db.DB()
@@ -100,6 +98,7 @@ def make_pick(player_id, user_id):
 			draftingAgain = False
 			set_drafting_now(user_id, 0)
 			set_drafting_now(nextPick['user_id'], 1)
+			emails.next_pick_email(nextPick['email'])
 		else:
 			draftingAgain = True	
 	player_data = get_one_player_from_db(player_id)
@@ -162,7 +161,7 @@ def check_next_pick(pick):
 		if nextPick['pick_expires'] is None:
 			sql = "UPDATE draft_picks d SET pick_expires = %s WHERE draft_pick_id = %s"
 			print("Query 1: " + str(sql))
-			pickExpiry = datetime.datetime.utcnow() + datetime.timedelta(hours = 24)
+			pickExpiry = datetime.datetime.utcnow() + datetime.timedelta(hours = 4)
 			database.cur.execute(sql, (pickExpiry, nextPick['draft_pick_id']))
 			database.connection.commit()
 			sql = "UPDATE draft SET current_pick=%s WHERE draft_id=%s"
