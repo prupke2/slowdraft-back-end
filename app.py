@@ -12,10 +12,12 @@ from models.status import *
 from models.draft import *
 from models.team import *
 from models.rules import *
+from models.emails import *
 from yahoo_api import *
 import db
 import datetime
 import pymysql
+
 # import download_players
 
 app = Flask(__name__, 
@@ -196,6 +198,9 @@ if __name__== '__main__':
 
   # get Yahoo league credentials
   config.league_key = credentials.game_key + ".l." + credentials.yahoo_league_id
+  config.yahoo_league_id = credentials.yahoo_league_id
+  config.league_id = credentials.league_id
+  config.draft_id = credentials.draft_id
 
   # get Pubnub credentials (for chat)
   config.pubnub_publish_key = credentials.pubnub_publish_key
@@ -205,10 +210,7 @@ if __name__== '__main__':
   config.host, config.user, config.password, config.db = credentials.get_local_DB()
   database = db.DB() 
 
-  config.yahoo_league_id = credentials.yahoo_league_id
-  config.league_id = credentials.league_id
-  config.draft_id = credentials.draft_id
-
+  config.SENDGRID_KEY = credentials.SENDGRID_KEY
   app.run(use_reloader=True, port=5000, threaded=True, debug=True)
 else:
   if 'flask_secret_key' in os.environ:
@@ -222,6 +224,9 @@ else:
   if 'pubnub_publish_key' in os.environ:
     config.pubnub_publish_key = os.environ['pubnub_publish_key']
     config.pubnub_subscribe_key = os.environ['pubnub_subscribe_key']
+  
+  if 'SENDGRID_KEY' in os.environ:
+    config.SENDGRID_KEY = os.environ['SENDGRID_KEY']
 
 	# get Yahoo league credentials
   if 'game_key' in os.environ and 'yahoo_league_id' in os.environ:
@@ -239,6 +244,7 @@ else:
   if 'yahoo_league_id' in os.environ:
     config.yahoo_league_id = [os.environ['yahoo_league_id']]
     config.league_id = os.environ['league_id']
+
   @app.before_request
   def force_https():
     if request.endpoint in app.view_functions and not request.is_secure:
