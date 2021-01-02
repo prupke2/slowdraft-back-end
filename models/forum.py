@@ -58,14 +58,20 @@ def view_post_replies(id):
 
 def new_forum_post(post):
 	print("In forum.new_forum_post")
-	time = datetime.datetime.utcnow()
+	now = datetime.datetime.utcnow()
 
 	sql = "INSERT INTO forum(title, body, user_id, league_id, yahoo_league_id, yahoo_team_id, create_date, update_date, parent_id) \
 			VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s)"
 
 	database = db.DB()
 	database.cur.execute(sql, (post['title'], post['body'], session['user_id'], session['league_id'], session['yahoo_league_id'], \
-		session['team_id'], time, time, post['parentId']))
+		session['team_id'], now, now, post['parentId']))
+	database.connection.commit()
+	sql = """ UPDATE updates 
+			SET latest_forum_update = %s 
+			WHERE league_id = %s
+	"""
+	database.cur.execute(sql, (now, session['league_id']))
 	database.connection.commit()
 	return
 

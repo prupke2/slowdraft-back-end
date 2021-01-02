@@ -13,6 +13,13 @@ def new_rule(post):
 	print(f"sql: {sql}")
 	database.cur.execute(sql, (post['title'], post['body'], session['league_id'], session['yahoo_league_id']))
 	database.connection.commit()
+	
+	sql = """ UPDATE updates 
+			SET latest_rules_update = %s 
+			WHERE league_id = %s
+	"""
+	database.cur.execute(sql, (datetime.datetime.utcnow(), session['league_id']))
+	database.connection.commit()
 	return
 
 def edit_rule(id):

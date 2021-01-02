@@ -37,6 +37,7 @@ def get_all_users():
 
 def change_pick(new_user_id, overall_pick):
 	database = db.DB()
+	now = datetime.datetime.utcnow()
 	database.cur.execute("SELECT * FROM draft_picks dp INNER JOIN users u ON u.user_id = dp.user_id \
 					WHERE dp.overall_pick = %s AND draft_id=%s", (overall_pick, session['draft_id']))
 	old_user = database.cur.fetchone()
@@ -45,7 +46,7 @@ def change_pick(new_user_id, overall_pick):
 		# Make sure this user doesn't have any other active picks before settings drafting_now = 0
 		pick_check = database.cur.execute("SELECT * FROM draft_picks WHERE draft_id = %s AND user_id = %s \
 				AND pick_expires > %s AND overall_pick != %s AND NHLid IS NULL",
-					(session['draft_id'], session['user_id'], datetime.datetime.utcnow(), overall_pick))
+					(session['draft_id'], session['user_id'], now, overall_pick))
 		if pick_check == 0:
 			database.cur.execute("UPDATE users SET drafting_now = 0 WHERE user_id = %s", [old_user['user_id']])
 			database.connection.commit()
@@ -53,6 +54,12 @@ def change_pick(new_user_id, overall_pick):
 	database.cur.execute("UPDATE draft_picks SET user_id=%s WHERE overall_pick = %s AND draft_id=%s",
 				(new_user_id, overall_pick, session['draft_id']))
 	# database.cur.execute("UPDATE users SET drafting_now = 1 WHERE user_id = %s", [new_user_id])
+	database.connection.commit()
+	sql = """ UPDATE updates 
+		SET latest_draft_update = %s
+		WHERE league_id = %s
+	"""
+	database.cur.execute(sql, (now, session['league_id']))
 	database.connection.commit()
 	database.cur.close()
 	return
@@ -134,13 +141,20 @@ def commit_pick(player_id, pick):
 			WHERE overall_pick = %s
 			AND draft_id = %s
 	"""
-	database.cur.execute(sql, (player_id, datetime.datetime.utcnow(), pick, session['draft_id']))
+	now = datetime.datetime.utcnow()
+	database.cur.execute(sql, (player_id, now, pick, session['draft_id']))
 	database.connection.commit()
 	sql = """ INSERT INTO user_team(draft_id, user_id, is_keeper, player_id)
 			VALUES (%s, %s, 0, %s)
 	"""
 	database.cur.execute(sql, (session['draft_id'], session['user_id'], player_id))
-	database.connection.commit()	
+	database.connection.commit()
+	sql = """ UPDATE updates 
+			SET latest_draft_update = %s, latest_team_update = %s
+			WHERE league_id = %s
+	"""
+	database.cur.execute(sql, (now, now, session['league_id']))
+	database.connection.commit()
 	return
 
 def check_next_pick(pick):
