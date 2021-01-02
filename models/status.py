@@ -3,6 +3,12 @@ import base64
 import requests
 from app import *
 
+def get_updates():
+	database = db.DB()
+	sql = "SELECT * FROM updates WHERE league_id = %s"
+	database.cur.execute(sql, session['league_id'])
+	return database.cur.fetchone()
+
 # Makes sure the draft session variable is set
 def check_league(f):
 	@wraps(f)
