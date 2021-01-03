@@ -91,6 +91,9 @@ def set_draft_picks(rounds, snake):
 
 
 def make_pick(player_id, user_id):
+	if check_if_taken(player_id) == True:
+		return None, None, None
+
 	pick = get_earliest_pick(user_id)
 	if pick is None:
 		return None, None, False
@@ -114,6 +117,16 @@ def make_pick(player_id, user_id):
 	player = []
 	player.extend((player_data['name'], player_data['position'], player_data['team']))
 	return player, nextPick, draftingAgain
+
+def check_if_taken(player_id):
+	database = db.DB()
+	sql = "SELECT player_id FROM user_team WHERE draft_id = %s AND player_id = %s"
+	database.cur.execute(sql, (session['draft_id'], player_id))
+	result = database.cur.fetchone()
+	print(f"result: {result}")
+	if result is None:
+		return False
+	return True
 
 def get_one_player_from_db(player_id):
 	database = db.DB()
