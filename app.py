@@ -47,6 +47,7 @@ def login(code):
   if code != '':
     response = get_access_token(config.client_id, config.client_secret, config.redirect_uri, code)
     if response == True:
+      session['league_id'] = config.league_id
       return jsonify(
         {
           'success': True,
