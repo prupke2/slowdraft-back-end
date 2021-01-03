@@ -3,11 +3,21 @@ import base64
 import requests
 from app import *
 
-def get_updates():
+def get_updates(user_id):
 	database = db.DB()
 	sql = "SELECT * FROM updates WHERE league_id = %s"
 	database.cur.execute(sql, session['league_id'])
-	return database.cur.fetchone()
+	updates = database.cur.fetchone()
+	drafting_now = check_if_drafting(database, user_id)
+	return updates, drafting_now
+
+def check_if_drafting(database, user_id):
+	sql = "SELECT drafting_now FROM users WHERE user_id = %s"
+	drafting_now = database.cur.execute(sql, user_id)
+	if drafting_now == 1:
+		return True
+	return False
+	
 
 # Makes sure the draft session variable is set
 def check_league(f):
@@ -62,6 +72,7 @@ def set_team_sessions():
 				session['role'] = user['role']
 				session['league_id'] = user['league_id']
 				session['color'] = user['color']
+				print(f"session['user_id']: {session['user_id']}")
 				# config.team_id = team['team_id']
 
 			# teams.append(team_data)

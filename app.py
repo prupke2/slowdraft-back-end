@@ -93,18 +93,18 @@ def get_team_session():
     return jsonify({'error': 'Not logged in'})
   print("Getting team sessions")
   set_team_sessions()
-  return jsonify({'user_id': session['user_id'], 'logo': session['logo'], 'team_name': session['team_name'], \
+  return jsonify({'user_id': session['user_id'], 'logo': str(session['logo']), 'team_name': session['team_name'], \
     'role': session['role'], 'color': session['color']})
 
 @app.route('/check_for_updates')
 def check_for_updates(): 
-  updates = get_updates()
+  updates, drafting_now = get_updates(session['user_id'])
   print(f"updates: {updates}")
-  return jsonify({'updates': updates})
+  return jsonify({'updates': updates, 'drafting_now': drafting_now})
 
 # @app.route('/get_teams_in_league')
-# def get_teams():
-#   return jsonify({'league': get_teams_in_league()})
+# def get_teams_in_league():
+#   return jsonify({'league': get_team_league_data()})
 
 @app.route('/get_league')
 def league():
