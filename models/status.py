@@ -13,12 +13,14 @@ def get_updates(user_id):
 
 def check_if_drafting(database, user_id):
 	sql = "SELECT drafting_now FROM users WHERE user_id = %s"
-	drafting_now = database.cur.execute(sql, user_id)
-	if drafting_now == 1:
+	print(f"sql: {sql}")
+	database.cur.execute(sql, user_id)
+	drafting_now = database.cur.fetchone()
+	print(f"drafting_now in status: {drafting_now}")
+	if drafting_now['drafting_now'] == 1:
 		return True
 	return False
 	
-
 # Makes sure the draft session variable is set
 def check_league(f):
 	@wraps(f)

@@ -99,7 +99,6 @@ def get_team_session():
 @app.route('/check_for_updates')
 def check_for_updates(): 
   updates, drafting_now = get_updates(session['user_id'])
-  print(f"updates: {updates}")
   return jsonify({'updates': updates, 'drafting_now': drafting_now})
 
 # @app.route('/get_teams_in_league')
