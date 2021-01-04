@@ -4,6 +4,7 @@ import requests
 from app import *
 
 def get_updates(user_id):
+	print(f"Getting updates for user_id: {user_id}")
 	database = db.DB()
 	sql = "SELECT * FROM updates WHERE league_id = %s"
 	database.cur.execute(sql, session['league_id'])
@@ -13,10 +14,8 @@ def get_updates(user_id):
 
 def check_if_drafting(database, user_id):
 	sql = "SELECT drafting_now FROM users WHERE user_id = %s"
-	print(f"sql: {sql}")
 	database.cur.execute(sql, user_id)
 	drafting_now = database.cur.fetchone()
-	print(f"drafting_now in status: {drafting_now}")
 	if drafting_now['drafting_now'] == 1:
 		return True
 	return False
