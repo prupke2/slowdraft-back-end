@@ -96,8 +96,13 @@ def get_team_session():
   return jsonify({'user_id': session['user_id'], 'logo': str(session['logo']), 'team_name': session['team_name'], \
     'role': session['role'], 'color': session['color']})
 
+@app.route('/check_for_updates')
+def check_for_updates(): 
+  updates, drafting_now = get_updates(session['user_id'])
+  return jsonify({'updates': updates, 'drafting_now': drafting_now})
+
 @app.route('/check_for_updates/<int:user_id>')
-def check_for_updates(user_id): 
+def check_for_updates_with_user(user_id): 
   updates, drafting_now = get_updates(user_id)
   return jsonify({'updates': updates, 'drafting_now': drafting_now})
 
