@@ -98,6 +98,8 @@ def get_team_session():
 
 @app.route('/check_for_updates')
 def check_for_updates(): 
+  if 'user_id' not in session:
+    get_team_session()
   updates, drafting_now = get_updates(session['user_id'])
   return jsonify({'updates': updates, 'drafting_now': drafting_now})
 
