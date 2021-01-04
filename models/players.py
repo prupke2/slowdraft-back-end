@@ -9,7 +9,7 @@ import db
 # 	# position = SelectField('Position')
 # 	showdrafted = BooleanField('showdrafted')
 
-def get_db_players(position, exclude_taken_players):
+def get_db_players(draft_id, position, exclude_taken_players):
 	database = db.DB()
 	if position == "G":
 		query = "SELECT y.name, y.position, y.prospect, y.player_id, y.player_key, y.team, y.careerGP, `18`, " \
@@ -17,7 +17,7 @@ def get_db_players(position, exclude_taken_players):
 	else:
 		query = "SELECT * FROM yahoo_db_20 y "
 	if exclude_taken_players == True:
-		query += f"WHERE NOT EXISTS (SELECT player_id FROM user_team ut WHERE ut.player_id = y.player_id AND ut.draft_id = {str(session['draft_id'])} ) AND "
+		query += f"WHERE NOT EXISTS (SELECT player_id FROM user_team ut WHERE ut.player_id = y.player_id AND ut.draft_id = {draft_id} ) AND "
 	else:
 		query += "LEFT JOIN user_team ut ON ut.player_id = y.player_id LEFT JOIN users u ON u.user_id = ut.user_id WHERE "
 

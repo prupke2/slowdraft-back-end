@@ -8,26 +8,25 @@ import db
 # class ForumReplyForm(Form):
 # 	body = TextAreaField('Body', [validators.Length(min=1, max=20000)])	
 
-def get_forum_posts():
-	if 'yahoo_league_id' not in session:
-		session['yahoo_league_id'] = config.yahoo_league_id
+def get_forum_posts(league_id):
+	# if 'yahoo_league_id' not in session:
+	# 	session['yahoo_league_id'] = config.yahoo_league_id
 	
-	if 'offset' not in session:
-		session['offset'] = -5
+	# if 'offset' not in session:
+	# 	session['offset'] = -5
 	
-
 	sql = ("SELECT f.*, u.username AS 'user', u.role, u.color, u.user_id \
-		FROM forum f INNER JOIN users u on u.yahoo_team_id = f.yahoo_team_id \
+		FROM forum f INNER JOIN users u on u.league_id = f.league_id \
 		WHERE f.parent_id IS NULL \
-		AND f.yahoo_league_id = %s \
-		AND u.yahoo_league_id = %s \
+		AND f.league_id = %s \
+		AND f.user_id = u.user_id \
 		ORDER BY update_date DESC")
 
 	database = db.DB()
-	posts = database.fetchAll(sql, [session['yahoo_league_id'], session['yahoo_league_id']])
+	posts = database.fetchAll(sql, [league_id])
 	for post in posts:
-		post['create_date'] = post['create_date'] - datetime.timedelta(minutes=int(float(session['offset'])))
-		post['update_date'] = post['update_date'] - datetime.timedelta(minutes=int(float(session['offset'])))
+		post['create_date'] = post['create_date'] - datetime.timedelta(minutes=int(float(0)))
+		post['update_date'] = post['update_date'] - datetime.timedelta(minutes=int(float(0)))
 	# print(str(posts))
 	return posts
 

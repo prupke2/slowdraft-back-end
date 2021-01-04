@@ -3,12 +3,9 @@ import db
 # from models import players
 from models import emails
 
-def get_draft():
+def get_draft(draft_id):
 	database = db.DB()
-	if 'draft_id' not in session:
-		session['draft_id'] = config.draft_id
-	print(f"session['draft_id']: {session['draft_id']}")
-	database.cur.execute("SELECT * FROM draft WHERE draft_id = %s", session['draft_id'])
+	database.cur.execute("SELECT * FROM draft WHERE draft_id = %s", draft_id)
 	draft = database.cur.fetchone()
 	draft_start_time = draft['draft_start_time_utc']
 	# full_draft_date = datetime.datetime.strftime(draft['draft_start_time_utc'], '%A, %b %d, %Y at %I:%M %p')
@@ -16,9 +13,9 @@ def get_draft():
 	sql = "SELECT d.*, u.*, y.player_id, y.name AS player_name, y.prospect, y.careerGP, y.team, y.position \
 		 FROM draft_picks d INNER JOIN users u ON u.user_id = d.user_id"
 	sql += " LEFT JOIN yahoo_db_20 y ON y.player_id = d.player_id WHERE d.draft_id = %s ORDER BY overall_pick"
-	database.cur.execute(sql, session['draft_id'])
+	database.cur.execute(sql, draft_id)
 	draft_picks = database.cur.fetchall()
-	current_pick = get_current_pick_info(draft['current_pick'])
+	current_pick = get_current_pick_info(draft['current_pick'], draft_id)
 
 	# sql = "SELECT * FROM draft_order do INNER JOIN users u ON u.user_id = do.user_id" \
   #                   " WHERE draft_id = %s ORDER BY draft_order"
@@ -35,7 +32,7 @@ def get_all_users():
 	users = database.cur.fetchall()	
 	return users
 
-def change_pick(new_user_id, overall_pick):
+def change_pick(new_user_id, overall_pick, league_id):
 	database = db.DB()
 	now = datetime.datetime.utcnow()
 	database.cur.execute("SELECT * FROM draft_picks dp INNER JOIN users u ON u.user_id = dp.user_id \
@@ -59,7 +56,7 @@ def change_pick(new_user_id, overall_pick):
 		SET latest_draft_update = %s
 		WHERE league_id = %s
 	"""
-	database.cur.execute(sql, (now, session['league_id']))
+	database.cur.execute(sql, (now, league_id))
 	database.connection.commit()
 	database.cur.close()
 	return
@@ -90,15 +87,15 @@ def set_draft_picks(rounds, snake):
 				overall_pick_count += 1
 
 
-def make_pick(player_id, user_id):
-	if check_if_taken(player_id) == True:
+def make_pick(draft_id, player_id, user_id):
+	if check_if_taken(draft_id, player_id) == True:
 		return None, None, None
 
-	pick = get_earliest_pick(user_id)
+	pick = get_earliest_pick(draft_id, user_id)
 	if pick is None:
 		return None, None, False
-	commit_pick(player_id, pick['overall_pick'])
-	nextPick = check_next_pick(pick['overall_pick'])
+	commit_pick(draft_id, player_id, user_id, pick['overall_pick'])
+	nextPick = check_next_pick(draft_id, pick['overall_pick'])
 	if nextPick is None:
 		set_drafting_now(user_id, 0)
 		return None, None, False
@@ -118,10 +115,10 @@ def make_pick(player_id, user_id):
 	player.extend((player_data['name'], player_data['position'], player_data['team']))
 	return player, nextPick, draftingAgain
 
-def check_if_taken(player_id):
+def check_if_taken(draft_id, player_id):
 	database = db.DB()
 	sql = "SELECT player_id FROM user_team WHERE draft_id = %s AND player_id = %s"
-	database.cur.execute(sql, (session['draft_id'], player_id))
+	database.cur.execute(sql, (draft_id, player_id))
 	result = database.cur.fetchone()
 	print(f"result: {result}")
 	if result is None:
@@ -134,7 +131,7 @@ def get_one_player_from_db(player_id):
 	database.cur.execute(sql, player_id)
 	return database.cur.fetchone()	
 
-def get_earliest_pick(user_id):
+def get_earliest_pick(draft_id, user_id):
 	database = db.DB()
 	sql = """ SELECT d.*, u.name, u.email
 			FROM draft_picks d
@@ -144,10 +141,10 @@ def get_earliest_pick(user_id):
 			AND d.user_id = %s
 			ORDER BY d.overall_pick ASC
 		"""
-	database.cur.execute(sql, (session['draft_id'], user_id))
+	database.cur.execute(sql, (draft_id, user_id))
 	return database.cur.fetchone()
 
-def commit_pick(player_id, pick):
+def commit_pick(draft_id, player_id, user_id, pick):
 	database = db.DB()
 	sql = """ UPDATE draft_picks
 			SET player_id = %s, draft_pick_timestamp = %s
@@ -155,12 +152,12 @@ def commit_pick(player_id, pick):
 			AND draft_id = %s
 	"""
 	now = datetime.datetime.utcnow()
-	database.cur.execute(sql, (player_id, now, pick, session['draft_id']))
+	database.cur.execute(sql, (player_id, now, pick, draft_id))
 	database.connection.commit()
 	sql = """ INSERT INTO user_team(draft_id, user_id, is_keeper, player_id)
 			VALUES (%s, %s, 0, %s)
 	"""
-	database.cur.execute(sql, (session['draft_id'], session['user_id'], player_id))
+	database.cur.execute(sql, (draft_id, user_id, player_id))
 	database.connection.commit()
 	sql = """ UPDATE updates 
 			SET latest_draft_update = %s, latest_team_update = %s
@@ -170,7 +167,7 @@ def commit_pick(player_id, pick):
 	database.connection.commit()
 	return
 
-def check_next_pick(pick):
+def check_next_pick(draft_id, pick):
 	database = db.DB()
 	sql = """ SELECT *
 			FROM draft_picks d
@@ -179,7 +176,7 @@ def check_next_pick(pick):
 			AND overall_pick > %s
 			ORDER BY overall_pick
 		"""
-	remainingPicks = database.cur.execute(sql, (session['draft_id'], pick))
+	remainingPicks = database.cur.execute(sql, (draft_id, pick))
 	nextPick = database.cur.fetchone()
 	if nextPick is None:
 		check_current_pick_in_draft()
@@ -193,7 +190,7 @@ def check_next_pick(pick):
 			database.connection.commit()
 			sql = "UPDATE draft SET current_pick=%s WHERE draft_id=%s"
 			print("Query 2: " + str(sql))
-			database.cur.execute(sql, (nextPick['overall_pick'], session['draft_id']))
+			database.cur.execute(sql, (nextPick['overall_pick'], draft_id))
 			database.connection.commit()
 	return nextPick
 
@@ -208,13 +205,13 @@ def set_drafting_now(user_id, value):
 	database.connection.commit()
 	return
 
-def get_current_pick_info(pick):
+def get_current_pick_info(pick, draft_id):
 	database = db.DB()
 	sql = "SELECT * FROM users u INNER JOIN draft_picks dp ON dp.user_id = u.user_id \
 			WHERE dp.overall_pick = %s AND dp.draft_id = %s"
 
 	print(str(sql) + "pick: " + str(pick))
-	database.cur.execute(sql, (pick, session['draft_id']))	
+	database.cur.execute(sql, (pick, draft_id))	
 	current_pick = database.cur.fetchone()
 	print(str(current_pick))
 	return current_pick

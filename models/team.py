@@ -10,7 +10,7 @@ import config
 # class save_keepersForm(Form):
 # 	keys_input = HiddenField('keys_input')
 
-def get_teams_from_db():
+def get_teams_from_db(draft_id):
 	database = db.DB()
 	sql = "SELECT u.yahoo_team_id, u.username, ut.is_keeper, y.name, y.team, y.position, y.prospect, y.player_id \
 			FROM user_team ut \
@@ -19,7 +19,7 @@ def get_teams_from_db():
 			WHERE draft_id = %s \
 			ORDER BY u.yahoo_team_id, FIELD(y.position, 'LW', 'C', 'RW', 'RW/C', 'RW/LW', \
 				 'C/LW/RW', 'C/LW', 'C/RW', 'LW/RW', 'LW/C', 'LW/D', 'D/LW', 'RW/D', 'D/RW', 'D')"
-	database.cur.execute(sql, (session['draft_id']))
+	database.cur.execute(sql, (draft_id))
 	players = database.cur.fetchall()	
 	return players
 

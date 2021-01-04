@@ -3,6 +3,15 @@ import base64
 import requests
 from app import *
 
+def get_updates_with_league(user_id, league_id):
+	print(f"Getting updates with league for user_id: {user_id}")
+	database = db.DB()
+	sql = "SELECT * FROM updates WHERE league_id = %s"
+	database.cur.execute(sql, league_id)
+	updates = database.cur.fetchone()
+	drafting_now = check_if_drafting(database, user_id)
+	return updates, drafting_now
+
 def get_updates(user_id):
 	print(f"Getting updates for user_id: {user_id}")
 	database = db.DB()
@@ -78,7 +87,7 @@ def set_team_sessions():
 
 			# teams.append(team_data)
 
-	return
+	return session['user_id'], session['logo'], session['team_name'], session['league_id'], config.draft_id, session['role'], session['color']
 
 def check_draft_status(f):
 	@wraps(f)

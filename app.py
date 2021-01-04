@@ -47,17 +47,51 @@ def login(code):
   if code != '':
     response = get_access_token(config.client_id, config.client_secret, config.redirect_uri, code)
     if response == True:
-      session['league_id'] = config.league_id
-      return jsonify(
+      user_id, logo, team_name, league_id, draft_id, role, color = set_team_sessions()
+      print(f"user_id: {user_id}")
+      print(f"logo: {logo}")
+      print(f"team_name: {team_name}")
+      print(f"league_id: {league_id}")
+      print(f"role: {role}")
+      print(f"color: {color}")
+      # user = jsonify(
+      #   {
+      #       'user_id': user_id, 
+      #       'logo': logo,
+      #       'team_name': team_name, 
+      #       'league_id': team_id, 
+      #       'role': role, 
+      #       'color': color
+      #   }
+      # )
+      # print(f"user: {user}")
+      response = jsonify(
         {
           'success': True,
           'access_token': session['access_token'],
           'refresh_token': session['refresh_token'],
           'guid': session['guid'],
           'pub': config.pubnub_publish_key, 
-          'sub': config.pubnub_subscribe_key
+          'sub': config.pubnub_subscribe_key,
+          'user': {
+            'user_id': user_id, 
+            'logo': logo,
+            'team_name': team_name, 
+            'league_id': league_id, 
+            'draft_id': draft_id,
+            'role': role, 
+            'color': color
+          }
         }
-      ) 
+      )
+      print(f"response: {response}")
+          # 'user_id': session['user_id'], 
+          # 'logo': str(session['logo']), 
+          # 'team_name': session['team_name'], 
+          # 'league_id': session['league_id'], 
+          # 'role': session['role'], 
+          # 'color': session['color']
+      return response
     else:
       return jsonify(
         {
@@ -90,23 +124,28 @@ def check_login():
 @app.route('/get_team_session')
 def get_team_session():
   if 'access_token' not in session:
+    print("Access token not in session.")
     return jsonify({'error': 'Not logged in'})
   print("Getting team sessions")
   set_team_sessions()
   return jsonify({'user_id': session['user_id'], 'logo': str(session['logo']), 'team_name': session['team_name'], \
-    'role': session['role'], 'color': session['color']})
+    'league_id': config.league_id, 'role': session['role'], 'color': session['color']})
 
-@app.route('/check_for_updates')
-def check_for_updates(): 
-  if 'user_id' not in session:
-    get_team_session()
-  updates, drafting_now = get_updates(session['user_id'])
+@app.route('/check_for_updates/<int:user_id>/<int:league_id>')
+def check_for_updates_with_user_and_league(user_id, league_id): 
+  updates, drafting_now = get_updates_with_league(user_id, league_id)
   return jsonify({'updates': updates, 'drafting_now': drafting_now})
 
-@app.route('/check_for_updates/<int:user_id>')
-def check_for_updates_with_user(user_id): 
-  updates, drafting_now = get_updates(user_id)
-  return jsonify({'updates': updates, 'drafting_now': drafting_now})
+# @app.route('/check_for_updates/<int:user_id>')
+# def check_for_updates_with_user(user_id): 
+#   updates, drafting_now = get_updates(user_id)
+#   return jsonify({'updates': updates, 'drafting_now': drafting_now})
+
+# @app.route('/check_for_updates')
+# def check_for_updates(user_id): 
+#   print(f"updating for session['user_id']: {session['user_id']}")
+#   updates, drafting_now = get_updates(session['user_id'])
+#   return jsonify({'updates': updates, 'drafting_now': drafting_now})
 
 # @app.route('/get_teams_in_league')
 # def get_teams_in_league():
@@ -131,21 +170,19 @@ def league():
 # def get_team_players():
 #   return jsonify({'players': get_yahoo_team_players(session['team_id'])})
 
-@app.route('/get_db_players')
-def get_players_from_db():
-  if 'draft_id' not in session:
-    session['draft_id'] = config.draft_id
+@app.route('/get_db_players/<int:draft_id>')
+def get_players_from_db(draft_id):
   position = request.args.get('position', default='skaters')
   exclude_taken_players = request.args.get('exclude_taken', default=True)
-  return jsonify({'players': get_db_players(position, exclude_taken_players)})
+  return jsonify({'players': get_db_players(draft_id, position, exclude_taken_players)})
 
-@app.route('/get_forum_posts')
-def forum():
-  return jsonify({"posts": get_forum_posts()})
+@app.route('/get_forum_posts/<int:league_id>')
+def forum(league_id):
+  return jsonify({"posts": get_forum_posts(league_id)})
 
-@app.route('/get_all_rules')
-def get_all_rules():
-  return jsonify({"rules": get_rules()})
+@app.route('/get_all_rules/<int:league_id>')
+def get_all_rules(league_id):
+  return jsonify({"rules": get_rules(league_id)})
 
 @app.route('/create_rule', methods=['POST'])
 def create_rule():
@@ -176,29 +213,27 @@ def post_to_forum():
 #   response = {'test': teams}
 #   return jsonify(response)
 
-@app.route('/get_draft')
-def get_draft_picks():
-  session['league_id'] = config.league_id
-  draft, draft_start_time, draft_picks, current_pick = get_draft()
+@app.route('/get_draft/<int:draft_id>')
+def get_draft_picks(draft_id):
+  # session['league_id'] = config.league_id
+  draft, draft_start_time, draft_picks, current_pick = get_draft(draft_id)
   return jsonify({'draft': draft, 'picks': draft_picks, 'current_pick': current_pick})
 
-@app.route('/draft/<int:player_id>')
-def draft_player(player_id):
-  player, nextPick, draftingAgain = make_pick(player_id, session['user_id'])
+@app.route('/draft/<int:draft_id>/<int:user_id>/<int:player_id>')
+def draft_player(draft_id, user_id, player_id):
+  player, nextPick, draftingAgain = make_pick(draft_id, player_id, user_id)
   return jsonify({'player': player, 'next_pick': nextPick, 'drafting_again': draftingAgain})
 
 @app.route('/update_pick', methods=['POST'])
 def update_pick():
   post = json.loads(request.data)
   print(f"post: {post}")
-  change_pick(post['user_id'], post['overall_pick'])
+  change_pick(post['user_id'], post['overall_pick'], post['league_id'])
   return jsonify({'success': True})
 
-@app.route('/get_teams')
-def get_teams():
-  if 'draft_id' not in session:
-    session['draft_id'] = config.draft_id
-  return jsonify({'teams': get_teams_from_db()})
+@app.route('/get_teams/<int:draft_id>')
+def get_teams(draft_id):
+  return jsonify({'teams': get_teams_from_db(draft_id)})
 
 if __name__== '__main__':
   import credentials
@@ -257,6 +292,7 @@ else:
   if 'yahoo_league_id' in os.environ:
     config.yahoo_league_id = [os.environ['yahoo_league_id']]
     config.league_id = os.environ['league_id']
+    config.draft_id = os.environ['draft_id']
 
   @app.before_request
   def force_https():

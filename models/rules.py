@@ -2,9 +2,9 @@ from app import *
 import db
 import config
 
-def get_rules():
+def get_rules(league_id):
 	database = db.DB()
-	database.cur.execute("SELECT * FROM rules WHERE league_id = %s ORDER BY `order`", [session['league_id']])
+	database.cur.execute("SELECT * FROM rules WHERE league_id = %s ORDER BY `order`", [league_id])
 	return database.cur.fetchall()
 
 def new_rule(post):
