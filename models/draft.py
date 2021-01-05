@@ -160,10 +160,10 @@ def commit_pick(draft_id, player_id, user_id, pick):
 	database.cur.execute(sql, (draft_id, user_id, player_id))
 	database.connection.commit()
 	sql = """ UPDATE updates 
-			SET latest_draft_update = %s, latest_team_update = %s
-			WHERE league_id = %s
+			SET latest_draft_update = %s, latest_team_update = %s, latest_player_db_update = %s, latest_goalie_db_update = %s
+			WHERE league_id = 61
 	"""
-	database.cur.execute(sql, (now, now, session['league_id']))
+	database.cur.execute(sql, (now, now, now, now))
 	database.connection.commit()
 	return
 
