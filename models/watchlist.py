@@ -4,7 +4,7 @@ from db import *
 
 def getWatchlist():
 	database = db.DB()
-	sql = "SELECT DISTINCT w.player_id, y.* FROM watchlist w INNER JOIN yahoo_db_19 y ON y.player_id = w.player_id \
+	sql = "SELECT DISTINCT w.player_id, y.* FROM watchlist w INNER JOIN yahoo_db_20 y ON y.player_id = w.player_id \
 			WHERE yahoo_league_id = %s AND user_id = %s"
 	database.cur.execute(sql, (session['yahoo_league_id'], session['user_id']))
 	players = database.cur.fetchall()
@@ -20,7 +20,7 @@ def getWatchlist():
 
 def getWatchlistIds():
 	database = db.DB()
-	sql = "SELECT w.player_id FROM watchlist w INNER JOIN yahoo_db_19 y ON y.player_id = w.player_id WHERE yahoo_league_id = %s AND user_id = %s"
+	sql = "SELECT w.player_id FROM watchlist w INNER JOIN yahoo_db_20 y ON y.player_id = w.player_id WHERE yahoo_league_id = %s AND user_id = %s"
 	database.cur.execute(sql, (session['yahoo_league_id'], session['user_id']))
 	players = database.cur.fetchall()
 	print("\n\nPlayers: " + str(players))

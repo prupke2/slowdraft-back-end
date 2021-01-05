@@ -127,7 +127,7 @@ def check_if_taken(draft_id, player_id):
 
 def get_one_player_from_db(player_id):
 	database = db.DB()
-	sql = "SELECT * FROM yahoo_db_19 WHERE player_id = %s"
+	sql = "SELECT * FROM yahoo_db_20 WHERE player_id = %s"
 	database.cur.execute(sql, player_id)
 	return database.cur.fetchone()	
 

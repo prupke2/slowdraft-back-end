@@ -104,7 +104,7 @@ def check_if_keepers(team_id):
 
 def check_validity_of_keepers(keys):
 	database = db.DB()
-	sql = "SELECT * FROM yahoo_db_19 WHERE player_id IN (" + keys + ")"
+	sql = "SELECT * FROM yahoo_db_20 WHERE player_id IN (" + keys + ")"
 	result = database.cur.execute(sql)
 	keepers = database.cur.fetchall()
 	goalies = 0
