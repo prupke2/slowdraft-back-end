@@ -161,8 +161,9 @@ def commit_pick(draft_id, player_id, user_id, pick):
 	database.connection.commit()
 	sql = """ UPDATE updates 
 			SET latest_draft_update = %s, latest_team_update = %s, latest_player_db_update = %s, latest_goalie_db_update = %s
-			WHERE league_id = 61
+			WHERE league_id = 52
 	"""
+	print(f"updating draft, team, db to now: {now}")
 	database.cur.execute(sql, (now, now, now, now))
 	database.connection.commit()
 	return
@@ -179,14 +180,19 @@ def check_next_pick(draft_id, pick):
 	remainingPicks = database.cur.execute(sql, (draft_id, pick))
 	nextPick = database.cur.fetchone()
 	if nextPick is None:
-		check_current_pick_in_draft()
+		print("nextPick is none")
+		check_current_pick_in_draft(draft_id)
 	else:	
 		print("Next pick: " + str(nextPick))
 		if nextPick['pick_expires'] is None:
 			sql = "UPDATE draft_picks d SET pick_expires = %s WHERE draft_pick_id = %s"
-			print("Query 1: " + str(sql))
-			pickExpiry = datetime.datetime.utcnow() + datetime.timedelta(hours = 4)
-			database.cur.execute(sql, (pickExpiry, nextPick['draft_pick_id']))
+			now = datetime.datetime.utcnow()
+			current_hour_utc = now.strftime("%H")
+			if 3 < int(current_hour_utc) < 13:
+				pick_expiry = datetime.datetime(now.year, now.month, now.day, 16, 0, 0)
+			else:
+				pick_expiry = datetime.datetime.utcnow() + datetime.timedelta(hours = 4)
+			database.cur.execute(sql, (pick_expiry, nextPick['draft_pick_id']))
 			database.connection.commit()
 			sql = "UPDATE draft SET current_pick=%s WHERE draft_id=%s"
 			print("Query 2: " + str(sql))
@@ -216,7 +222,7 @@ def get_current_pick_info(pick, draft_id):
 	print(str(current_pick))
 	return current_pick
 
-def check_current_pick_in_draft():
+def check_current_pick_in_draft(draft_id):
 	database = db.DB()
 	sql = """SELECT *
 			FROM draft_picks d
@@ -226,15 +232,15 @@ def check_current_pick_in_draft():
 			AND player_id IS NULL
 			ORDER BY overall_pick DESC
 		"""
-	database.cur.execute(sql, session['draft_id'])
+	database.cur.execute(sql, draft_id)
 	current_pick = database.cur.fetchone()
 	print("current: " + str(current_pick))
 	if current_pick is None:
 		sql = "UPDATE draft SET is_live=%s, is_over=%s WHERE draft_id=%s"
-		database.cur.execute(sql, (0, 1, session['draft_id']))
+		database.cur.execute(sql, (0, 1, draft_id))
 	else:
 		sql = "UPDATE draft SET current_pick=%s WHERE draft_id=%s"
-		database.cur.execute(sql, (current_pick, session['draft_id']))
+		database.cur.execute(sql, (current_pick, draft_id))
 	database.connection.commit()
 	return	
 # if session.get('league_id') is None or session['league_id'] == '0':
