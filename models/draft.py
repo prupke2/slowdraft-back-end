@@ -3,13 +3,12 @@ import db
 # from models import players
 from models import emails
 
-def get_draft(draft_id):
+# Legacy endpoint to avoid interrupting draft for users who don't refresh
+def get_dp(draft_id):
 	database = db.DB()
 	database.cur.execute("SELECT * FROM draft WHERE draft_id = %s", draft_id)
 	draft = database.cur.fetchone()
 	draft_start_time = draft['draft_start_time_utc']
-	# full_draft_date = datetime.datetime.strftime(draft['draft_start_time_utc'], '%A, %b %d, %Y at %I:%M %p')
-
 	sql = "SELECT d.*, u.*, y.player_id, y.name AS player_name, y.prospect, y.careerGP, y.team, y.position \
 		 FROM draft_picks d INNER JOIN users u ON u.user_id = d.user_id"
 	sql += " LEFT JOIN yahoo_db_20 y ON y.player_id = d.player_id WHERE d.draft_id = %s ORDER BY overall_pick"
@@ -17,12 +16,30 @@ def get_draft(draft_id):
 	draft_picks = database.cur.fetchall()
 	current_pick = get_current_pick_info(draft['current_pick'], draft_id)
 
+def get_draft(draft_id, user_id):
+	database = db.DB()
+	database.cur.execute("SELECT * FROM draft WHERE draft_id = %s", draft_id)
+	draft = database.cur.fetchone()
+	draft_start_time = draft['draft_start_time_utc']
+	# full_draft_date = datetime.datetime.strftime(draft['draft_start_time_utc'], '%A, %b %d, %Y at %I:%M %p')
+
+	sql = "SELECT d.*, u.user_id, u.color, u.username, y.player_id, y.name AS player_name, y.prospect, y.careerGP, y.team, y.position \
+		 FROM draft_picks d INNER JOIN users u ON u.user_id = d.user_id"
+	sql += " LEFT JOIN yahoo_db_20 y ON y.player_id = d.player_id WHERE d.draft_id = %s ORDER BY overall_pick"
+	database.cur.execute(sql, draft_id)
+	draft_picks = database.cur.fetchall()
+	current_pick = get_current_pick_info(draft['current_pick'], draft_id)
+
+	sql = "SELECT drafting_now FROM users WHERE user_id=%s"
+	database.cur.execute(sql, user_id)
+	result = database.cur.fetchone()
+	drafting_now = result['drafting_now']
 	# sql = "SELECT * FROM draft_order do INNER JOIN users u ON u.user_id = do.user_id" \
   #                   " WHERE draft_id = %s ORDER BY draft_order"
 	# user_count = database.cur.execute(sql, session['draft_id'])
 	# users = database.cur.fetchone()
 	# users = get_all_users()
-	return draft, draft_start_time, draft_picks, current_pick
+	return draft, drafting_now, draft_start_time, draft_picks, current_pick
 
 def get_all_users():
 	database = db.DB()
@@ -32,24 +49,24 @@ def get_all_users():
 	users = database.cur.fetchall()	
 	return users
 
-def change_pick(new_user_id, overall_pick, league_id):
+def change_pick(new_user_id, overall_pick, league_id, draft_id):
 	database = db.DB()
 	now = datetime.datetime.utcnow()
 	database.cur.execute("SELECT * FROM draft_picks dp INNER JOIN users u ON u.user_id = dp.user_id \
-					WHERE dp.overall_pick = %s AND draft_id=%s", (overall_pick, session['draft_id']))
+					WHERE dp.overall_pick = %s AND draft_id=%s", (overall_pick, draft_id))
 	old_user = database.cur.fetchone()
 	# flash(str(old_user['drafting_now']), 'success')
 	if old_user['drafting_now'] == 1:
 		# Make sure this user doesn't have any other active picks before settings drafting_now = 0
 		pick_check = database.cur.execute("SELECT * FROM draft_picks WHERE draft_id = %s AND user_id = %s \
-				AND pick_expires > %s AND overall_pick != %s AND NHLid IS NULL",
-					(session['draft_id'], session['user_id'], now, overall_pick))
+				AND pick_expires > %s AND overall_pick != %s AND player_id IS NULL",
+					(draft_id, old_user['user_id'], now, overall_pick))
 		if pick_check == 0:
 			database.cur.execute("UPDATE users SET drafting_now = 0 WHERE user_id = %s", [old_user['user_id']])
 			database.connection.commit()
 
 	database.cur.execute("UPDATE draft_picks SET user_id=%s WHERE overall_pick = %s AND draft_id=%s",
-				(new_user_id, overall_pick, session['draft_id']))
+				(new_user_id, overall_pick, draft_id))
 	# database.cur.execute("UPDATE users SET drafting_now = 1 WHERE user_id = %s", [new_user_id])
 	database.connection.commit()
 	sql = """ UPDATE updates 
@@ -59,7 +76,7 @@ def change_pick(new_user_id, overall_pick, league_id):
 	database.cur.execute(sql, (now, league_id))
 	database.connection.commit()
 	database.cur.close()
-	return
+	return True
 
 def set_draft_picks(rounds, snake):
 	overall_pick_count = 1
@@ -188,8 +205,8 @@ def check_next_pick(draft_id, pick):
 			sql = "UPDATE draft_picks d SET pick_expires = %s WHERE draft_pick_id = %s"
 			now = datetime.datetime.utcnow()
 			current_hour_utc = now.strftime("%H")
-			if 3 < int(current_hour_utc) < 13:
-				pick_expiry = datetime.datetime(now.year, now.month, now.day, 16, 0, 0)
+			if 2 < int(current_hour_utc) < 14:
+				pick_expiry = datetime.datetime(now.year, now.month, now.day, 17, 0, 0)
 			else:
 				pick_expiry = datetime.datetime.utcnow() + datetime.timedelta(hours = 4)
 			database.cur.execute(sql, (pick_expiry, nextPick['draft_pick_id']))

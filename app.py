@@ -213,23 +213,43 @@ def post_to_forum():
 #   response = {'test': teams}
 #   return jsonify(response)
 
+# Legacy endpoint to avoid interrupting draft for users who don't refresh
 @app.route('/get_draft/<int:draft_id>')
 def get_draft_picks(draft_id):
   # session['league_id'] = config.league_id
-  draft, draft_start_time, draft_picks, current_pick = get_draft(draft_id)
+  draft, draft_start_time, draft_picks, current_pick = get_dp(draft_id)
   return jsonify({'draft': draft, 'picks': draft_picks, 'current_pick': current_pick})
+
+@app.route('/get_draft/<int:draft_id>/<int:user_id>')
+def get_dps(draft_id, user_id):
+  # session['league_id'] = config.league_id
+  draft, drafting_now, draft_start_time, draft_picks, current_pick = get_draft(draft_id, user_id)
+  if drafting_now == 1:
+    drafting_now = True
+  else:
+    drafting_now = False
+  return jsonify({'draft': draft, 'drafting_now': drafting_now, 'picks': draft_picks, 'current_pick': current_pick})
 
 @app.route('/draft/<int:draft_id>/<int:user_id>/<int:player_id>')
 def draft_player(draft_id, user_id, player_id):
-  player, nextPick, draftingAgain = make_pick(draft_id, player_id, user_id)
-  return jsonify({'player': player, 'next_pick': nextPick, 'drafting_again': draftingAgain})
+  player, nextPick, drafting_again = make_pick(draft_id, player_id, user_id)
+  drafting_again_text = ''
+  if drafting_again == 1:
+    drafting_again_text = "You're up again!"
+
+  return jsonify({'player': player, 'next_pick': nextPick, 'drafting_again': drafting_again_text})
 
 @app.route('/update_pick', methods=['POST'])
 def update_pick():
   post = json.loads(request.data)
   print(f"post: {post}")
-  change_pick(post['user_id'], post['overall_pick'], post['league_id'])
-  return jsonify({'success': True})
+  attempt = False
+  try:
+    change_pick(post['user_id'], post['overall_pick'], post['league_id'], post['draft_id'])
+    return jsonify({'success': True})
+  except Exception(e):
+    return jsonify({'success': False, 'error': e})
+
 
 @app.route('/get_teams/<int:draft_id>')
 def get_teams(draft_id):
