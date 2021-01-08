@@ -10,16 +10,11 @@ def get_dp(draft_id):
 	draft = database.cur.fetchone()
 	draft_start_time = draft['draft_start_time_utc']
 	sql = "SELECT d.*, u.*, y.player_id, y.name AS player_name, y.prospect, y.careerGP, y.team, y.position \
-		 FROM draft_picks d INNER JOIN users u ON u.user_id = d.user_id"
+				 FROM draft_picks d INNER JOIN users u ON u.user_id = d.user_id"
 	sql += " LEFT JOIN yahoo_db_20 y ON y.player_id = d.player_id WHERE d.draft_id = %s ORDER BY overall_pick"
 	database.cur.execute(sql, draft_id)
 	draft_picks = database.cur.fetchall()
 	current_pick = get_current_pick_info(draft['current_pick'], draft_id)
-	sql = "SELECT drafting_now FROM users WHERE user_id=%s"
-	database.cur.execute(sql, user_id)
-	result = database.cur.fetchone()
-	drafting_now = result['drafting_now']
-
 	
 	# sql = "SELECT * FROM draft_order do INNER JOIN users u ON u.user_id = do.user_id" \
   #                   " WHERE draft_id = %s ORDER BY draft_order"
