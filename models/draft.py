@@ -19,12 +19,14 @@ def get_dp(draft_id):
 	database.cur.execute(sql, user_id)
 	result = database.cur.fetchone()
 	drafting_now = result['drafting_now']
+
+	
 	# sql = "SELECT * FROM draft_order do INNER JOIN users u ON u.user_id = do.user_id" \
   #                   " WHERE draft_id = %s ORDER BY draft_order"
 	# user_count = database.cur.execute(sql, session['draft_id'])
 	# users = database.cur.fetchone()
 	# users = get_all_users()
-	return draft, drafting_now, draft_start_time, draft_picks, current_pick
+	return draft, draft_start_time, draft_picks, current_pick
 
 def get_draft(draft_id, user_id):
 	database = db.DB()
