@@ -247,8 +247,8 @@ def update_pick():
   try:
     change_pick(post['user_id'], post['overall_pick'], post['league_id'], post['draft_id'])
     return jsonify({'success': True})
-  except Exception(e):
-    return jsonify({'success': False, 'error': e})
+  except Exception:
+    return jsonify({'success': False})
 
 
 @app.route('/get_teams/<int:draft_id>')
