@@ -85,6 +85,22 @@ def change_pick(new_user_id, overall_pick, league_id, draft_id):
 	database.cur.close()
 	return True
 
+def toggle_pick_enabled(overall_pick, league_id, draft_id):
+	database = db.DB()
+	disabled = 1
+	database.cur.execute("SELECT disabled FROM draft_picks WHERE overall_pick = %s AND draft_id=%s",
+				(overall_pick, draft_id))	
+	pick = database.cur.fetchone()
+	if pick['disabled'] == 1:
+		disabled = 0
+	database.cur.execute("UPDATE draft_picks SET disabled=%s WHERE overall_pick = %s AND draft_id=%s",
+				(disabled, overall_pick, draft_id))
+	database.connection.commit()
+	database.cur.close()
+	if disabled == 1:
+		return 'disabled'
+	return 'enabled'
+
 def set_draft_picks(rounds, snake):
 	overall_pick_count = 1
 	database = db.DB()
