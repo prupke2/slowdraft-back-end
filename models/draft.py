@@ -82,7 +82,7 @@ def change_pick(new_user_id, overall_pick, league_id, draft_id):
 	"""
 	database.cur.execute(sql, (now, league_id))
 	database.connection.commit()
-	database.cur.close()
+	# database.cur.close()
 	return True
 
 def toggle_pick_enabled(overall_pick, league_id, draft_id):
@@ -102,7 +102,7 @@ def toggle_pick_enabled(overall_pick, league_id, draft_id):
 		WHERE league_id = %s
 	"""
 	database.cur.execute(sql, (now, league_id))
-	database.cur.close()
+	# database.cur.close()
 	if disabled == 1:
 		return 'disabled'
 	return 'enabled'
