@@ -96,6 +96,11 @@ def toggle_pick_enabled(overall_pick, league_id, draft_id):
 	database.cur.execute("UPDATE draft_picks SET disabled=%s WHERE overall_pick = %s AND draft_id=%s",
 				(disabled, overall_pick, draft_id))
 	database.connection.commit()
+	sql = """ UPDATE updates 
+		SET latest_draft_update = %s
+		WHERE league_id = %s
+	"""
+	database.cur.execute(sql, (now, league_id))
 	database.cur.close()
 	if disabled == 1:
 		return 'disabled'
