@@ -199,6 +199,7 @@ def check_next_pick(draft_id, pick):
 			INNER JOIN users u ON u.user_id = d.user_id
 			WHERE draft_id = %s
 			AND overall_pick > %s
+			AND disabled = 0
 			ORDER BY overall_pick
 		"""
 	remainingPicks = database.cur.execute(sql, (draft_id, pick))
