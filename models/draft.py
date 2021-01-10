@@ -87,6 +87,7 @@ def change_pick(new_user_id, overall_pick, league_id, draft_id):
 
 def toggle_pick_enabled(overall_pick, league_id, draft_id):
 	database = db.DB()
+	now = datetime.datetime.utcnow()
 	disabled = 1
 	database.cur.execute("SELECT disabled FROM draft_picks WHERE overall_pick = %s AND draft_id=%s",
 				(overall_pick, draft_id))	
