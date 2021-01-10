@@ -250,6 +250,17 @@ def update_pick():
   except Exception:
     return jsonify({'success': False})
 
+@app.route('/update_pick_enablement', methods=['POST'])
+def disable_pick():
+  post = json.loads(request.data)
+  print(f"post: {post}")
+  attempt = False
+  try:
+    new_status = toggle_pick_enabled(post['overall_pick'], post['league_id'], post['draft_id'])
+    return jsonify({'success': True, 'status': new_status})
+  except Exception:
+    return jsonify({'success': False})
+
 
 @app.route('/get_teams/<int:draft_id>')
 def get_teams(draft_id):
