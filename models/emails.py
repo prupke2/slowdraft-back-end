@@ -7,7 +7,7 @@ def next_pick_email(to_email):
 	try:
 		print(f"Sending next pick email to: {to_email}...")
 		message = Mail(
-		from_email='slowdraftapp@gmail.com',
+		from_email='slowdraft@paulrupke.com',
 		to_emails=to_email,
 		subject="You're up in the draft!",
 		html_content="<div style='background: rgba(51, 153, 255, 0.3); font-size: 16px; " \
