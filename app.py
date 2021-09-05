@@ -207,7 +207,7 @@ def post_to_forum():
 def test():
   # download_players.scrapePlayersFromYahoo()
   # email_test = emails.next_pick_email('paul.rupke@gmail.com')
-  # session['draft_id'] = config.draft_id
+  session['draft_id'] = config.draft_id
   # return jsonify({"success": email_test})
   set_draft_picks(14, False)
   # teams = get_teams_from_db(214)
