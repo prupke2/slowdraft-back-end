@@ -264,6 +264,15 @@ def disable_pick():
   except Exception:
     return jsonify({'success': False})
 
+@app.route('/insert_player', methods=['POST'])
+def insert_player():
+  post = json.loads(request.data)
+  try:
+    insert_db_player(post['name'], post['player_id'], post['team'], post['positions'])
+    return jsonify({'success': True})
+  except Exception as e:
+    print("Insert player failed. Error: " + str(e))
+    return jsonify({'success': False})
 
 @app.route('/get_teams/<int:draft_id>')
 def get_teams(draft_id):
