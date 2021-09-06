@@ -9,6 +9,17 @@ import db
 # 	# position = SelectField('Position')
 # 	showdrafted = BooleanField('showdrafted')
 
+def insert_db_player(name, player_id, team, positions_array):
+	separator = " / "
+	positions_string = separator.join(positions_array)
+	player_key = "403.p." + player_id
+	database = db.DB()
+	query = "INSERT INTO yahoo_db_21(name, player_id, player_key, team, position) VALUES (%s, %s, ç%s, %s, %s)"
+	print(f"query: {query}")
+	database.cur.execute(query, (name, player_id, player_key, team, positions_string))
+	database.connection.commit()
+	return True
+
 def get_db_players(draft_id, position, exclude_taken_players):
 	database = db.DB()
 	if position == "G":
