@@ -14,7 +14,7 @@ def insert_db_player(name, player_id, team, positions_array):
 	positions_string = separator.join(positions_array)
 	player_key = "403.p." + player_id
 	database = db.DB()
-	query = "INSERT INTO yahoo_db_21(name, player_id, player_key, team, position) VALUES (%s, %s, ç%s, %s, %s)"
+	query = "INSERT INTO yahoo_db_21(name, player_id, player_key, team, position) VALUES (%s, %s, %s, %s, %s)"
 	print(f"query: {query}")
 	database.cur.execute(query, (name, player_id, player_key, team, positions_string))
 	database.connection.commit()
