@@ -11,7 +11,7 @@ def get_dp(draft_id):
 	draft_start_time = draft['draft_start_time_utc']
 	sql = "SELECT d.*, u.*, y.player_id, y.name AS player_name, y.prospect, y.careerGP, y.team, y.position \
 				 FROM draft_picks d INNER JOIN users u ON u.user_id = d.user_id"
-	sql += " LEFT JOIN yahoo_db_20 y ON y.player_id = d.player_id WHERE d.draft_id = %s ORDER BY overall_pick"
+	sql += " LEFT JOIN yahoo_db_21 y ON y.player_id = d.player_id WHERE d.draft_id = %s ORDER BY overall_pick"
 	database.cur.execute(sql, draft_id)
 	draft_picks = database.cur.fetchall()
 	current_pick = get_current_pick_info(draft['current_pick'], draft_id)
@@ -32,7 +32,7 @@ def get_draft(draft_id, user_id):
 
 	sql = "SELECT d.*, u.user_id, u.color, u.username, y.player_id, y.name AS player_name, y.prospect, y.careerGP, y.team, y.position \
 		 FROM draft_picks d INNER JOIN users u ON u.user_id = d.user_id"
-	sql += " LEFT JOIN yahoo_db_20 y ON y.player_id = d.player_id WHERE d.draft_id = %s ORDER BY overall_pick"
+	sql += " LEFT JOIN yahoo_db_21 y ON y.player_id = d.player_id WHERE d.draft_id = %s ORDER BY overall_pick"
 	database.cur.execute(sql, draft_id)
 	draft_picks = database.cur.fetchall()
 	current_pick = get_current_pick_info(draft['current_pick'], draft_id)
@@ -173,7 +173,7 @@ def check_if_taken(draft_id, player_id):
 
 def get_one_player_from_db(player_id):
 	database = db.DB()
-	sql = "SELECT * FROM yahoo_db_20 WHERE player_id = %s"
+	sql = "SELECT * FROM yahoo_db_21 WHERE player_id = %s"
 	database.cur.execute(sql, player_id)
 	return database.cur.fetchone()	
 

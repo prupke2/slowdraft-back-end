@@ -128,7 +128,7 @@ def organize_player_keys(players):
 def check_if_prospect(id):
 	print("ID: " + str(id))
 	database = db.DB()
-	sql = "SELECT prospect, careerGP, NHLid FROM yahoo_db_20 WHERE player_id = %s"
+	sql = "SELECT prospect, careerGP, NHLid FROM yahoo_db_21 WHERE player_id = %s"
 	database.cur.execute(sql, [str(id)])
 	player = database.cur.fetchone()
 	# print(str(result))
