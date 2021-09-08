@@ -12,9 +12,9 @@ import config
 
 def get_teams_from_db(draft_id):
 	database = db.DB()
-	sql = "SELECT u.yahoo_team_id, u.username, ut.is_keeper, y.name, y.team, y.position, y.prospect, y.player_id \
+	sql = "SELECT u.yahoo_team_id, u.username, ut.is_keeper, y.name, y.team, y.position, y.prospect, y.player_id, y.headshot \
 			FROM user_team ut \
-			JOIN yahoo_db_20 y ON y.player_id = ut.player_id \
+			JOIN yahoo_db_21 y ON y.player_id = ut.player_id \
 			JOIN users u ON ut.user_id = u.user_id \
 			WHERE draft_id = %s \
 			ORDER BY u.yahoo_team_id, FIELD(y.position, 'LW', 'C', 'RW', 'RW/C', 'RW/LW', \

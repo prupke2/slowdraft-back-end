@@ -206,7 +206,7 @@ def post_to_forum():
 # @app.route('/test')
 # def test():
 #   # download_players.scrapePlayersFromYahoo()
-#   # email_test = emails.next_pick_email('paul.rupke@gmail.com')
+#   # email_test = emails.next_pick_email('')
 #   session['draft_id'] = config.draft_id
 #   # return jsonify({"success": email_test})
 #   set_draft_picks(14, False)
