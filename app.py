@@ -250,7 +250,8 @@ def update_pick():
   try:
     change_pick(post['user_id'], post['overall_pick'], post['league_id'], post['draft_id'])
     return jsonify({'success': True})
-  except Exception:
+  except Exception as e:
+    print(f"Error updating pick: {e}")
     return jsonify({'success': False})
 
 @app.route('/update_pick_enablement', methods=['POST'])
