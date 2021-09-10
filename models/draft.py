@@ -76,12 +76,20 @@ def change_pick(new_user_id, overall_pick, league_id, draft_id):
 				(new_user_id, overall_pick, draft_id))
 	# database.cur.execute("UPDATE users SET drafting_now = 1 WHERE user_id = %s", [new_user_id])
 	database.connection.commit()
+
 	sql = """ UPDATE updates 
 		SET latest_draft_update = %s
 		WHERE league_id = %s
 	"""
 	database.cur.execute(sql, (now, league_id))
 	database.connection.commit()
+
+	# check if the pick that was changed is the current pick - if it is, let the new user draft 
+	database.cur.execute("SELECT * FROM draft WHERE draft_id = %s", draft_id)
+	draft = database.cur.fetchone()
+	if overall_pick == draft['current_pick']:
+		database.cur.execute("UPDATE users SET drafting_now = 1 WHERE user_id = %s", [new_user_id])
+		database.connection.commit()
 	# database.cur.close()
 	return True
 
