@@ -12,8 +12,8 @@ def get_forum_posts(league_id):
 	# if 'yahoo_league_id' not in session:
 	# 	session['yahoo_league_id'] = config.yahoo_league_id
 	
-	# if 'offset' not in session:
-	# 	session['offset'] = -5
+	if 'offset' not in session:
+		session['offset'] = -5
 	
 	sql = ("SELECT f.*, u.username AS 'user', u.role, u.color, u.user_id \
 		FROM forum f INNER JOIN users u on u.league_id = f.league_id \
