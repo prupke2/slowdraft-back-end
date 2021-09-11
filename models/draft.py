@@ -30,7 +30,7 @@ def get_draft(draft_id, user_id):
 	draft_start_time = draft['draft_start_time_utc']
 	# full_draft_date = datetime.datetime.strftime(draft['draft_start_time_utc'], '%A, %b %d, %Y at %I:%M %p')
 
-	sql = "SELECT d.*, u.user_id, u.color, u.username, y.player_id, y.name AS player_name, y.prospect, y.careerGP, y.team, y.position \
+	sql = "SELECT d.*, u.user_id, u.color, u.username, y.player_id, y.name AS player_name, y.prospect, y.careerGP, y.team, y.position, y.headshot \
 		 FROM draft_picks d INNER JOIN users u ON u.user_id = d.user_id"
 	sql += " LEFT JOIN yahoo_db_21 y ON y.player_id = d.player_id WHERE d.draft_id = %s ORDER BY overall_pick"
 	database.cur.execute(sql, draft_id)
@@ -215,7 +215,7 @@ def commit_pick(draft_id, player_id, user_id, pick):
 	database.connection.commit()
 	sql = """ UPDATE updates 
 			SET latest_draft_update = %s, latest_team_update = %s, latest_player_db_update = %s, latest_goalie_db_update = %s
-			WHERE league_id = 64
+			WHERE league_id IN (54, 64)
 	"""
 	print(f"updating draft, team, db to now: {now}")
 	database.cur.execute(sql, (now, now, now, now))
