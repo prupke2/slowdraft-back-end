@@ -74,7 +74,6 @@ def change_pick(new_user_id, overall_pick, league_id, draft_id):
 
 	database.cur.execute("UPDATE draft_picks SET user_id=%s WHERE overall_pick = %s AND draft_id=%s",
 				(new_user_id, overall_pick, draft_id))
-	# database.cur.execute("UPDATE users SET drafting_now = 1 WHERE user_id = %s", [new_user_id])
 	database.connection.commit()
 
 	sql = """ UPDATE updates 
@@ -110,6 +109,8 @@ def toggle_pick_enabled(overall_pick, league_id, draft_id):
 		WHERE league_id = %s
 	"""
 	database.cur.execute(sql, (now, league_id))
+	database.connection.commit()
+
 	# database.cur.close()
 	if disabled == 1:
 		return 'disabled'
