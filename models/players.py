@@ -10,26 +10,26 @@ import datetime
 # 	# position = SelectField('Position')
 # 	showdrafted = BooleanField('showdrafted')
 
-def insert_db_player(name, player_id, team, positions_array):
+def insert_db_player(name, player_id, team, positions_array, NHLid = None):
 	separator = " / "
 	positions_string = separator.join(positions_array)
 	player_key = "403.p." + player_id
 	database = db.DB()
-	query = "INSERT INTO yahoo_db_21(name, player_id, player_key, team, position) VALUES (%s, %s, %s, %s, %s)"
-	database.cur.execute(query, (name, player_id, player_key, team, positions_string))
+	query = "INSERT INTO yahoo_db_21(name, player_id, player_key, team, position, NHLid, prospect) VALUES (%s, %s, %s, %s, %s, %s, 1)"
+	database.cur.execute(query, (name, player_id, player_key, team, positions_string, NHLid))
 	database.connection.commit()
 
-	table = "latest_player_db_update"
-	if positions_string == 'G':
-		table = "latest_goalie_db_update"
+	# table = "latest_player_db_update"
+	# if positions_string == 'G':
+	# 	table = "latest_goalie_db_update"
 
-	query = f""" UPDATE updates 
-		SET {table} = %s
-		WHERE league_id = %s
-	"""
+	# query = f""" UPDATE updates 
+	# 	SET {table} = %s
+	# 	WHERE league_id = %s
+	# """
 
-	database.cur.execute(query, (datetime.datetime.utcnow(), 64))
-	database.connection.commit()
+	# database.cur.execute(query, (datetime.datetime.utcnow(), 64))
+	# database.connection.commit()
 	return True
 
 def get_db_players(draft_id, position, exclude_taken_players):

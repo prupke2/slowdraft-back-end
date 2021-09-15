@@ -18,7 +18,7 @@ import db
 import datetime
 import pymysql
 
-# import download_players
+import download_players
 
 app = Flask(__name__, 
   static_url_path='',
@@ -203,8 +203,10 @@ def post_to_forum():
   new_forum_post(post)
   return jsonify({"success": True})
 
-# @app.route('/test')
-# def test():
+@app.route('/test')
+def test():
+  download_players.get_players_from_nhl_draft(2021, 1)
+  return jsonify({"players": download_players.get_players_from_nhl_draft(2021, 2)})
 #   # download_players.scrapePlayersFromYahoo()
 #   # email_test = emails.next_pick_email('')
 #   session['draft_id'] = config.draft_id

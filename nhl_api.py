@@ -15,7 +15,7 @@ def getNHLId(name):
 		return 0	
 
 def getCareerGamesPlayed(id):
-	NHL_PLAYER_INFO_URL = "https://statsapi.web.nhl.com/api/v1/people/" + str(id) + "?expand=person.stats&stats=careerRegularSeason"		
+	NHL_PLAYER_INFO_URL = f"https://statsapi.web.nhl.com/api/v1/people/{str(id)}?expand=person.stats&stats=careerRegularSeason"		
 	response = requests.get(NHL_PLAYER_INFO_URL)
 	if response.status_code >= 200 and response.status_code <= 203:
 		result=response.json()
@@ -24,3 +24,23 @@ def getCareerGamesPlayed(id):
 		else:
 			return result['people'][0]['stats'][0]['splits'][0]['stat']['games']
 
+def getNhlDraftRound(year, round):
+	NHL_DRAFT_YEAR_URL = f"https://statsapi.web.nhl.com/api/v1/draft/{year}"
+	response = requests.get(NHL_DRAFT_YEAR_URL)
+	if response.status_code >= 200 and response.status_code <= 203:
+		result=response.json()
+		return result['drafts'][0]['rounds'][round - 1]['picks']
+	else:
+		print(f"Error getting draft for year {year}, round {round}. Response: {response}")
+		return null
+
+def getNhlProspect(prospect_url):
+	NHL_PROSPECT_URL = f"https://statsapi.web.nhl.com{prospect_url}"
+	print(f"NHL_PROSPECT_URL: {NHL_PROSPECT_URL}")
+	response = requests.get(NHL_PROSPECT_URL)
+	if response.status_code >= 200 and response.status_code <= 203:
+		result=response.json()
+		return result['prospects'][0]
+	else:
+		print(f"Error getting prospect with url: {prospect_url}. Response: {response}")
+		return null

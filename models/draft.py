@@ -194,6 +194,7 @@ def get_earliest_pick(draft_id, user_id):
 			WHERE player_id IS NULL
 			AND d.draft_id = %s
 			AND d.user_id = %s
+			AND d.disabled = 0
 			ORDER BY d.overall_pick ASC
 		"""
 	database.cur.execute(sql, (draft_id, user_id))

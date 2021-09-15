@@ -62,7 +62,43 @@ NHL_TEAM_ID = {
     'Minnesota Wild' : '30',
     'Winnipeg Jets' : '52',
     'Arizona Coyotes' : '53',
-    'Vegas Golden Knights' : '54'
+    'Vegas Golden Knights' : '54',
+		'Seattle Kraken': '55'
+}
+
+NHL_TEAM_ID_TO_SHORT_NAME = {
+	  1: 'NJ',
+    2: 'NYI',
+		3: 'NYR',
+    4: 'Phi',
+    5: 'Pit',
+    6: 'Bos',
+    7: 'Buf',
+    8: 'Mon',
+    9: 'Ott',
+    10: 'Tor',
+    12: 'Car',
+    13: 'Fla',
+    14: 'TB',
+    15: 'Was',
+    16: 'Chi',
+    17: 'Det',
+    18: 'Nsh',
+    19: 'StL',
+    20: 'Cgy',
+    21: 'Col',
+    22: 'Edm',
+    23: 'Van',
+    24: 'Anh',
+    25: 'Dal',
+    26: 'LA',
+    28: 'SJ',
+    29: 'Cls',
+    30: 'Min',
+    52: 'Wpg',
+    53: 'Ari',
+    54: 'VGK',
+		55: 'Sea'
 }
 
 # Yahoo endpoints 
