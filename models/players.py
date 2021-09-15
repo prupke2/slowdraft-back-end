@@ -19,17 +19,17 @@ def insert_db_player(name, player_id, team, positions_array, NHLid = None):
 	database.cur.execute(query, (name, player_id, player_key, team, positions_string, NHLid))
 	database.connection.commit()
 
-	# table = "latest_player_db_update"
-	# if positions_string == 'G':
-	# 	table = "latest_goalie_db_update"
+	table = "latest_player_db_update"
+	if positions_string == 'G':
+		table = "latest_goalie_db_update"
 
-	# query = f""" UPDATE updates 
-	# 	SET {table} = %s
-	# 	WHERE league_id = %s
-	# """
+	query = f""" UPDATE updates 
+		SET {table} = %s
+		WHERE league_id = %s
+	"""
 
-	# database.cur.execute(query, (datetime.datetime.utcnow(), 64))
-	# database.connection.commit()
+	database.cur.execute(query, (datetime.datetime.utcnow(), 64))
+	database.connection.commit()
 	return True
 
 def get_db_players(draft_id, position, exclude_taken_players):
