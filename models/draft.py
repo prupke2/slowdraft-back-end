@@ -111,7 +111,6 @@ def toggle_pick_enabled(overall_pick, league_id, draft_id):
 	database.cur.execute(sql, (now, league_id))
 	database.connection.commit()
 
-	# database.cur.close()
 	if disabled == 1:
 		return 'disabled'
 	return 'enabled'
