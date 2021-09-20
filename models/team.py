@@ -35,7 +35,7 @@ def get_yahoo_team(team_id):
 
 def get_yahoo_team_players(team_id):
  
-	ROSTER_URL = YAHOO_BASE_URL + "team/" + config.league_key + ".t." + team_id + "/roster"
+	ROSTER_URL = f"{YAHOO_BASE_URL}/team/{config.league_key}.t.{str(team_id)}/roster"
 	roster = yahoo_api.yahoo_request(ROSTER_URL)
 	if roster == '':
 		return '','','','';	

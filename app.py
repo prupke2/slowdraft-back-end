@@ -262,7 +262,8 @@ def disable_pick():
   try:
     new_status = toggle_pick_enabled(post['overall_pick'], post['league_id'], post['draft_id'])
     return jsonify({'success': True, 'status': new_status})
-  except Exception:
+  except Exception as e:
+    print(f"Updating pick enablement failed. Error: {e}")
     return jsonify({'success': False})
 
 @app.route('/insert_player', methods=['POST'])
