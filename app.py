@@ -276,6 +276,16 @@ def insert_player():
     print("Insert player failed. Error: " + str(e))
     return jsonify({'success': False})
 
+@app.route('/add_keeper_player', methods=['POST'])
+def add_keeper_player():
+  post = json.loads(request.data)
+  try:
+    add_keeper(post['user_id'], post['player_id'], post['draft_id'])
+    return jsonify({'success': True})
+  except Exception as e:
+    print("Add keeper player failed. Error: " + str(e))
+    return jsonify({'success': False})
+
 @app.route('/get_teams/<int:draft_id>')
 def get_teams(draft_id):
   return jsonify({'teams': get_teams_from_db(draft_id)})

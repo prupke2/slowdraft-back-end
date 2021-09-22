@@ -144,3 +144,12 @@ def save_keepers(keepers):
 		print("\n\n Query: " + str(sql))
 		database.cur.execute(sql, (session['user_id'], session['draft_id'], keeper['player_id'], 1, keeper['NHLid']))
 		database.connection.commit()
+
+def add_keeper(user_id, player_id, draft_id):
+	# print(f"user_id: {user_id}, player_id: {player_id}, draft_id: {draft_id} ")
+	database = db.DB()
+	sql = "INSERT INTO user_team(user_id, draft_id, player_id, is_keeper, NHLid) VALUES(%s, %s, %s, %s, %s)"
+	print(f"sql: {sql}")
+	print(f"user_id: {user_id}")
+	database.cur.execute(sql, (user_id, draft_id, player_id, 1, 0))
+	database.connection.commit()
