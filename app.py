@@ -201,15 +201,15 @@ def post_to_forum():
   new_forum_post(post)
   return jsonify({"success": True})
 
-# @app.route('/test')
-# def test():
+@app.route('/test')
+def test():
 #   download_players.get_players_from_nhl_draft(2021, 1)
 #   return jsonify({"players": download_players.get_players_from_nhl_draft(2021, 2)})
 #   # download_players.scrapePlayersFromYahoo()
 #   # email_test = emails.next_pick_email('')
-#   session['draft_id'] = config.draft_id
+  session['draft_id'] = config.draft_id
 #   # return jsonify({"success": email_test})
-#   set_draft_picks(14, False)
+  set_draft_picks(14, False)
 #   # teams = get_teams_from_db(214)
 
 #   # response = {'test': teams}

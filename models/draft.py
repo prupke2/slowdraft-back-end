@@ -138,6 +138,10 @@ def set_draft_picks(rounds, snake):
 			if (snake == True) and (round % 2 == 0):
 				overall_pick_count -= 1
 			else:
+				if round == 1 and overall_pick_count == 12:
+					overall_pick_count += 1
+					database.cur.execute(sql, (session['draft_id'], 306, overall_pick_count, round))
+					database.connection.commit()
 				overall_pick_count += 1
 
 
