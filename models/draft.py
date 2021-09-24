@@ -249,8 +249,8 @@ def check_next_pick(draft_id, pick):
 			now = datetime.datetime.utcnow()
 			current_hour_utc = now.strftime("%H")
 
-			# if the pick is made overnight (10pm to 9am  ET), set the new pick expiry to the next day at 1pm ET
-			if 2 < int(current_hour_utc) < 13:
+			# if the pick is made overnight (10pm to 9am ET), set the new pick expiry to the next day at 1pm ET
+			if 2 <= int(current_hour_utc) < 13:
 				pick_expiry = datetime.datetime(now.year, now.month, now.day, 17, 0, 0)
 			else:
 				pick_expiry = datetime.datetime.utcnow() + datetime.timedelta(hours = 4)
