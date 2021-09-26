@@ -69,6 +69,13 @@ def organize_player_info(player_keys):
 			flash("No players found." , "danger")	
 	return players	
 
+def get_yteam(team_id):
+	TEAM_URL = f"https://fantasysports.yahooapis.com/fantasy/v2/team/{config.league_key}.t.10"
+	team_query = yahoo_request(TEAM_URL)
+	print(f"team_query: {team_query}")
+	return jsonify(team_query)
+
+
 def organize_stat_data(stats):	
 	# creates new arrays to hold all player stats
 	players = []

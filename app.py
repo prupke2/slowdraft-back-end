@@ -203,6 +203,7 @@ def post_to_forum():
 
 # @app.route('/test')
 # def test():
+#   return get_yteam(11)
 #   download_players.get_players_from_nhl_draft(2021, 1)
 #   return jsonify({"players": download_players.get_players_from_nhl_draft(2021, 2)})
 #   # download_players.scrapePlayersFromYahoo()
