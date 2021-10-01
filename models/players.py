@@ -34,15 +34,16 @@ def insert_db_player(name, player_id, team, positions_array, NHLid = None):
 
 def get_db_players(draft_id, position, exclude_taken_players):
 	database = db.DB()
+	query = "SELECT (SELECT DISTINCT u.username FROM users u WHERE u.user_id = ut.user_id) AS 'user', "
 	if position == "G":
-		query = "SELECT y.name, y.position, y.prospect, y.player_id, y.player_key, y.team, y.headshot, y.careerGP, `18`, " \
+		query += "y.name, y.position, y.prospect, y.player_id, y.player_key, y.team, y.headshot, y.careerGP, `18`, " \
 					+ "`19`, `22`, CAST(`23` AS CHAR) AS `23`, `24`, `25`, `26` FROM yahoo_db_21 y "
 	else:
-		query = "SELECT * FROM yahoo_db_21 y "
-	if exclude_taken_players == True:
-		query += f"WHERE NOT EXISTS (SELECT player_id FROM user_team ut WHERE ut.player_id = y.player_id AND ut.draft_id = {draft_id} ) AND "
-	else:
-		query += "LEFT JOIN user_team ut ON ut.player_id = y.player_id LEFT JOIN users u ON u.user_id = ut.user_id WHERE "
+		query += "y.* FROM yahoo_db_21 y "
+	# if exclude_taken_players == True:
+	# 	query += f"WHERE NOT EXISTS (SELECT player_id FROM user_team ut WHERE ut.player_id = y.player_id AND ut.draft_id = {draft_id} ) AND "
+	# else:
+	query += f"LEFT JOIN user_team ut ON ut.player_id = y.player_id AND ut.draft_id = {draft_id} WHERE "
 
 	if position == "G":
 		query += "position = 'G';"
