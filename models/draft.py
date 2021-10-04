@@ -309,7 +309,30 @@ def check_current_pick_in_draft(draft_id):
 # 	session['draft_id'] = '0'
 # return redirect(url_for('league'))
 
+def add_pick_to_draft(draft_id, league_id, user_id):
+	database = db.DB()
+	sql = """SELECT MAX(overall_pick) AS 'last_pick'
+		FROM draft_picks d
+		WHERE draft_id = %s
+	"""
+	database.cur.execute(sql, draft_id)
+	last_pick = database.cur.fetchone()
+	new_pick = last_pick['last_pick'] + 1
 
+	sql = f"""
+		INSERT INTO draft_picks(user_id, draft_id, round, overall_pick)
+		VALUES(%s, %s, %s, %s)
+	"""
+	database.cur.execute(sql, (user_id, draft_id, 15, new_pick))
+	database.connection.commit()
+
+	sql = """ UPDATE updates 
+		SET latest_draft_update = %s
+		WHERE league_id = %s
+	"""
+	database.cur.execute(sql, (datetime.datetime.utcnow(), league_id))
+	database.connection.commit()
+	return True;
 
 # # get all remaining picks
 # all_remaining_picks_result = cur.execute(""" SELECT d.*, u.name
