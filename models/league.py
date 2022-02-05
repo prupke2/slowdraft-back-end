@@ -69,3 +69,12 @@ def get_league():
 	league['positions'] = league_data['settings']['roster_positions']['roster_position']	
 	config.league_data = league_data
 	return league	
+
+def get_leagues():
+	GET_LEAGUES_URL = YAHOO_BASE_URL + 'league'
+	league_query = yahoo_api.yahoo_request(GET_LEAGUES_URL)
+	if league_query == '':
+		error = 'Unable to access Yahoo.'
+		return jsonify({'success': False, 'error': error})
+	else:
+		return league_query
