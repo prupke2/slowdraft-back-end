@@ -1,2 +1,2 @@
 from app import *
-from util import *
+import util
