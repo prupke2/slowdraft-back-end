@@ -141,16 +141,14 @@ def insert_player(user):
 @check_if_admin
 def add_keeper_player(user):
   post = json.loads(request.data)
-  add_keeper(post['team_key'], post['player_id'], user['draft_id'])
-  return jsonify({'success': True})
+  return add_keeper(post['team_key'], post['player_id'], user['draft_id'])
 
 @app.route('/add_new_pick', methods=['POST'])
 @exception_handler
 @check_if_admin
 def add_new_pick(user):
   post = json.loads(request.data)
-  add_pick_to_draft(user['draft_id'], user['yahoo_league_id'], post['team_key'])
-  return jsonify({'success': True})
+  return add_pick_to_draft(user['draft_id'], user['yahoo_league_id'], post['team_key'])
 
 # -------------------------- these routes hit the yahoo api -------------------------- 
 
