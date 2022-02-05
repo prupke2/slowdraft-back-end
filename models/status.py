@@ -1,31 +1,20 @@
 import config
 import base64
 import requests
+from flask import jsonify
 from app import *
 
-def get_updates_with_league(user_id, league_id):
-	print(f"Getting updates with league for user_id: {user_id}")
+def get_updates_with_league(yahoo_league_id, team_key):
 	database = db.DB()
-	sql = "SELECT * FROM updates WHERE league_id = %s"
-	database.cur.execute(sql, league_id)
+	database.cur.execute("SELECT * FROM updates WHERE yahoo_league_id = %s", yahoo_league_id)
 	updates = database.cur.fetchone()
-	drafting_now = check_if_drafting(database, user_id)
-	return updates, drafting_now
+	return jsonify({'updates': updates, 'drafting_now': check_if_drafting(database, team_key)})
 
-def get_updates(user_id):
-	print(f"Getting updates for user_id: {user_id}")
-	database = db.DB()
-	sql = "SELECT * FROM updates WHERE league_id = %s"
-	database.cur.execute(sql, session['league_id'])
-	updates = database.cur.fetchone()
-	drafting_now = check_if_drafting(database, user_id)
-	return updates, drafting_now
-
-def check_if_drafting(database, user_id):
-	sql = "SELECT drafting_now FROM users WHERE user_id = %s"
-	database.cur.execute(sql, user_id)
-	drafting_now = database.cur.fetchone()
-	if drafting_now['drafting_now'] == 1:
+def check_if_drafting(database, team_key):
+	sql = "SELECT drafting_now FROM users WHERE team_key = %s"
+	database.cur.execute(sql, team_key)
+	result = database.cur.fetchone()
+	if result and result['drafting_now'] == 1:
 		return True
 	return False
 	
@@ -48,18 +37,20 @@ def check_league(f):
 def set_team_sessions():
 	# this function will only run if your team_id isn't already set 
 	if team_id is not None:	
+		my_team_data = {}
 		TEAM_URL = config.YAHOO_BASE_URL + "league/" + config.league_key + "/teams"
 		team_query = yahoo_api.yahoo_request(TEAM_URL)
-		session['yahoo_league_id'] = team_query['fantasy_content']['league']['league_id']
+		my_team_data['yahoo_league_id'] = team_query['fantasy_content']['league']['league_id']
 		teams = []
 		for team in team_query['fantasy_content']['league']['teams']['team']:
 			team_data = {}
-			# # print("TEAM: " + str(team))
-			# team_data['team_id'] = team['team_id']
-			# team_data['user'] = team['managers']['manager']['nickname']
-			# team_data['user_logo'] = team['managers']['manager']['image_url']
-			# team_data['team_name'] = team['name']
-			# team_data['team_logo'] = team['team_logos']['team_logo']['url']
+			# print("TEAM: " + str(team))
+			team_data['team_id'] = team['team_id']
+			team_data['team_key'] = team['team_key']
+			team_data['user'] = team['managers']['manager']['nickname']
+			team_data['user_logo'] = team['managers']['manager']['image_url']
+			team_data['team_name'] = team['name']
+			team_data['team_logo'] = team['team_logos']['team_logo']['url']
 			# team_data['waiver_priority'] = team['waiver_priority']
 
 			# # some managers choose not to share their email, so this sets it to empty if that is the case
@@ -68,26 +59,30 @@ def set_team_sessions():
 			# except:
 			# 	team_data['email'] = ""	
 
-			if session['guid'] == team['managers']['manager']['guid']:
+			if 'is_owned_by_current_login' in team:
+			# if session['guid'] == team['managers']['manager']['guid']:
 				print(f"team: {team}")
-				session['team_id'] = team['team_id']
-				session['logo'] = team['team_logos']['team_logo']['url']
-				session['team_name'] = team['name']
-				# if ('user_id' not in session) or ('role' not in session):
+				my_team_data['team_id'] = team['team_id']
+				my_team_data['logo'] = team['team_logos']['team_logo']['url']
+				my_team_data['team_name'] = team['name']
+				my_team_data['team_key'] = team['team_key']
 				database = db.DB()
-				sql = "SELECT * FROM users WHERE yahoo_league_id = %s AND yahoo_team_id = %s"
-				database.cur.execute(sql, (session['yahoo_league_id'], session['team_id']))
+				sql = """
+					SELECT u.role, u.color, d.draft_id, d.current_pick
+					FROM users u
+					INNER JOIN draft d
+						ON u.yahoo_league_id = d.yahoo_league_id
+					WHERE team_key = %s
+					AND d.yahoo_league_id = %s
+				"""
+				database.cur.execute(sql, (my_team_data['team_key'], my_team_data['yahoo_league_id']))
 				user = database.cur.fetchone()
-				session['user_id'] = user['user_id']
-				session['role'] = user['role']
-				session['league_id'] = user['league_id']
-				session['color'] = user['color']
-				print(f"session['user_id']: {session['user_id']}")
-				# config.team_id = team['team_id']
-
-			# teams.append(team_data)
-
-	return session['user_id'], session['logo'], session['team_name'], session['league_id'], config.draft_id, session['role'], session['color']
+				my_team_data['role'] = user['role']
+				my_team_data['color'] = user['color']
+				my_team_data['draft_id'] = user['draft_id']
+				my_team_data['current_pick'] = user['current_pick']
+			teams.append(team_data)
+	return teams, my_team_data
 
 def check_draft_status(f):
 	@wraps(f)
