@@ -2,7 +2,6 @@ from app import *
 # from models.team import *
 # from oauth import *
 import config
-from yahoo_oauth import *
 import requests
 # import oauth
 # oauth.yahoo_oauth import get_access_token, refresh_access_token, test
