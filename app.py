@@ -1,5 +1,7 @@
-from flask import Flask, request, send_from_directory, session, request, url_for, redirect, render_template, jsonify, flash, send_from_directory
+from flask import Flask, request, send_from_directory, session, request, \
+  url_for, redirect, render_template, jsonify, flash, send_from_directory
 from oauth import *
+from oauth.web_token import *
 from random import randint
 import time
 import config
@@ -31,177 +33,140 @@ def serve(path):
   else:
     return send_from_directory(app.static_folder, 'index.html')
 
-@app.route('/logout')
+@app.route('/logout', methods=['GET'])
 def logout():
-  try:
-	  session.clear()
-	  return jsonify({'success': True})
-  except Exception(e):
-    error = 'Error clearing session: ' + str(e)
-    return jsonify({'success': False, 'error': 'Unable to clear session'})
+  return oauth_logout()
 
 @app.route('/login/<string:code>', methods=['GET'])
 def login(code):
-  if code != '':
-    response = get_access_token(config.client_id, config.client_secret, config.redirect_uri, code)
-    if response == True:
-      user_id, logo, team_name, league_id, draft_id, role, color = set_team_sessions()
-      print(f"user_id: {user_id}")
-      print(f"logo: {logo}")
-      print(f"team_name: {team_name}")
-      print(f"league_id: {league_id}")
-      print(f"role: {role}")
-      print(f"color: {color}")
-      # user = jsonify(
-      #   {
-      #       'user_id': user_id, 
-      #       'logo': logo,
-      #       'team_name': team_name, 
-      #       'league_id': team_id, 
-      #       'role': role, 
-      #       'color': color
-      #   }
-      # )
-      # print(f"user: {user}")
-      response = jsonify(
-        {
-          'success': True,
-          'access_token': session['access_token'],
-          'refresh_token': session['refresh_token'],
-          'guid': session['guid'],
-          'pub': config.pubnub_publish_key, 
-          'sub': config.pubnub_subscribe_key,
-          'user': {
-            'user_id': user_id, 
-            'logo': logo,
-            'team_name': team_name, 
-            'league_id': league_id, 
-            'draft_id': draft_id,
-            'role': role, 
-            'color': color
-          }
-        }
-      )
-      print(f"response: {response}")
-          # 'user_id': session['user_id'], 
-          # 'logo': str(session['logo']), 
-          # 'team_name': session['team_name'], 
-          # 'league_id': session['league_id'], 
-          # 'role': session['role'], 
-          # 'color': session['color']
-      return response
-    else:
-      return jsonify(
-        {
-          'success': False,
-          'error': response
-        }
-      ) 
-  else:
-    print('Warning: No code provided.')
-    return jsonify({'response': 'No code provided'}) 
+  return oauth_login(code)
 
-@app.route('/check_login')
-def check_login():
-  if 'access_token' in session and 'refresh_token' in session:
-    # On successful login, return Pubnub keys for chat backend
-    return jsonify(
-      {
-        'success': True, 
-        'pub': config.pubnub_publish_key, 
-        'sub': config.pubnub_subscribe_key
-      }
-    )
-  return jsonify(
-    {
-      'success': False, 
-      'error': 'Unable to get access token'
-    }
-  )
+@app.route('/check_for_updates', methods=['GET'])
+@exception_handler
+def check_for_updates_with_user_and_league(user):
+  print(f"Getting updates for {user['team_name']} ({user['team_key']})")
+  return get_updates_with_league(user['yahoo_league_id'], user['team_key'])
 
-@app.route('/get_team_session')
-def get_team_session():
-  if 'access_token' not in session:
-    print("Access token not in session.")
-    return jsonify({'error': 'Not logged in'})
-  print("Getting team sessions")
-  set_team_sessions()
-  return jsonify({'user_id': session['user_id'], 'logo': str(session['logo']), 'team_name': session['team_name'], \
-    'league_id': config.league_id, 'role': session['role'], 'color': session['color']})
+@app.route('/get_db_players', methods=['GET'])
+@exception_handler
+def get_players_from_db(user):
+  position = request.args.get('position', default='skaters')
+  return get_db_players(user['draft_id'], position)
 
-@app.route('/check_for_updates/<int:user_id>/<int:league_id>')
-def check_for_updates_with_user_and_league(user_id, league_id): 
-  updates, drafting_now = get_updates_with_league(user_id, league_id)
-  return jsonify({'updates': updates, 'drafting_now': drafting_now})
+@app.route('/get_teams')
+@exception_handler
+def get_teams(user):
+  return get_teams_from_db(user['draft_id'])
 
-# @app.route('/check_for_updates/<int:user_id>')
-# def check_for_updates_with_user(user_id): 
-#   updates, drafting_now = get_updates(user_id)
-#   return jsonify({'updates': updates, 'drafting_now': drafting_now})
+# -------------------------- Forum & Rules routes --------------------------
 
-# @app.route('/check_for_updates')
-# def check_for_updates(user_id): 
-#   print(f"updating for session['user_id']: {session['user_id']}")
-#   updates, drafting_now = get_updates(session['user_id'])
-#   return jsonify({'updates': updates, 'drafting_now': drafting_now})
+@app.route('/get_forum_posts', methods=['GET'])
+@exception_handler
+def forum(user):
+  return get_forum_posts(user['yahoo_league_id'])
+
+@app.route('/new_forum_post', methods=['POST'])
+@exception_handler
+def post_to_forum(user):
+  post = json.loads(request.data)
+  return new_forum_post(post, user)
+
+@app.route('/update_forum_post', methods=['POST'])
+@exception_handler
+def update_post(user):
+  post = json.loads(request.data)
+  return update_forum_post(user, post['title'], post['body'], post['id'], post['parent_id'])
+
+@app.route('/view_post_replies/<int:post_id>', methods=['GET'])
+@exception_handler
+def view_forum_post_replies(user, post_id):
+  return get_post_replies(user['yahoo_league_id'], post_id)
+
+@app.route('/get_all_rules', methods=['GET'])
+@exception_handler
+def get_all_rules(user):
+  return get_rules(user['yahoo_league_id'])
+
+@app.route('/create_rule', methods=['POST'])
+@exception_handler
+def create_rule(user):
+  post = json.loads(request.data)
+  return new_rule(post, user)
+
+# -------------------------- Draft routes --------------------------
+
+@app.route('/get_draft', methods=['GET'])
+@exception_handler
+def get_dps(user):
+  return get_draft(user['draft_id'], user['team_key'])
+
+@app.route('/draft/<int:player_id>', methods=['GET'])
+@exception_handler
+def draft_player(user, player_id):
+  return make_pick(user['draft_id'], player_id, user['team_key'])
+
+# -------------------------- Admin routes --------------------------
+
+@app.route('/make_pick', methods=['POST'])
+@exception_handler
+@check_if_admin
+def draft_player_admin(user):
+  post = json.loads(request.data)
+  return make_pick(user['draft_id'], post['player_id'], post['team_key'])
+
+@app.route('/update_pick', methods=['POST'])
+@exception_handler
+@check_if_admin
+def update_pick(user):
+  post = json.loads(request.data)
+  return change_pick(post['team_key'], post['overall_pick'], user['yahoo_league_id'], user['draft_id'])
+
+@app.route('/update_pick_enablement', methods=['POST'])
+@exception_handler
+@check_if_admin
+def toggle_pick(user):
+  post = json.loads(request.data)
+  return toggle_pick_enabled(post['overall_pick'], user['yahoo_league_id'], user['draft_id'])
+
+@app.route('/insert_player', methods=['POST'])
+@exception_handler
+@check_if_admin
+def insert_player(user):
+  post = json.loads(request.data)
+  insert_db_player(post['name'], post['player_id'], post['team'], post['positions'])
+  return jsonify({'success': True})
+
+@app.route('/add_keeper_player', methods=['POST'])
+@exception_handler
+@check_if_admin
+def add_keeper_player(user):
+  post = json.loads(request.data)
+  add_keeper(post['team_key'], post['player_id'], user['draft_id'])
+  return jsonify({'success': True})
+
+@app.route('/add_new_pick', methods=['POST'])
+@exception_handler
+@check_if_admin
+def add_new_pick(user):
+  post = json.loads(request.data)
+  add_pick_to_draft(user['draft_id'], user['yahoo_league_id'], post['team_key'])
+  return jsonify({'success': True})
+
+# -------------------------- these routes hit the yahoo api -------------------------- 
 
 # @app.route('/get_teams_in_league')
 # def get_teams_in_league():
 #   return jsonify({'league': get_team_league_data()})
 
-@app.route('/get_league')
-def league():
-  return jsonify({'league': get_league()})
-
-# @app.route('/get_players')
-# def players():
-#   sortby = request.args.get('sortby', default=3)
-#   sortdir = request.args.get('sortdir', default=0)
-#   position = request.args.get('position', default='LW,RW,C')
-#   player_search = request.args.get('player_search', default='')
-#   showdrafted = request.args.get('showdrafted', default='False')
-#   offset = request.args.get('offset', default='0')
-#   skaters, skater_stats, goalies, goalie_stats = get_players(sortby, sortdir, position, player_search, offset)
-#   return jsonify({'players': skaters})
+# @app.route('/get_league')
+# def league():
+#   return jsonify({'league': get_league()})
 
 # @app.route('/get_yahoo_team_players')
 # def get_team_players():
 #   return jsonify({'players': get_yahoo_team_players(session['team_id'])})
-
-@app.route('/get_db_players/<int:draft_id>')
-def get_players_from_db(draft_id):
-  position = request.args.get('position', default='skaters')
-  exclude_taken_players = request.args.get('exclude_taken', default=True)
-  return jsonify({'players': get_db_players(draft_id, position, exclude_taken_players)})
-
-@app.route('/get_forum_posts/<int:league_id>')
-def forum(league_id):
-  return jsonify({"posts": get_forum_posts(league_id)})
-
-@app.route('/get_all_rules/<int:league_id>')
-def get_all_rules(league_id):
-  return jsonify({"rules": get_rules(league_id)})
-
-@app.route('/create_rule', methods=['POST'])
-def create_rule():
-  post = json.loads(request.data)
-  new_rule(post)
-  return jsonify({"success": True})
-
-@app.route('/view_post_replies/<int:post_id>')
-def view_forum_post(post_id):
-  return jsonify({"replies": view_post_replies(post_id)})
-
-@app.route('/new_forum_post', methods=['POST'])
-def post_to_forum():
-  print("new_forum_post hit")
-  post = json.loads(request.data)
-  print(f"post: {post}")
-  print(f"post title: {post['title']}")
-  new_forum_post(post)
-  return jsonify({"success": True})
-
 # @app.route('/test')
+
 # def test():
 #   return get_yteam(11)
 #   download_players.get_players_from_nhl_draft(2021, 1)
@@ -212,95 +177,6 @@ def post_to_forum():
 #   # return jsonify({"success": email_test})
   # set_draft_picks(14, False)
 #   # teams = get_teams_from_db(214)
-
-#   # response = {'test': teams}
-#   # return jsonify(response)
-#   return jsonify({"success": True})
-
-# Legacy endpoint to avoid interrupting draft for users who don't refresh
-@app.route('/get_draft/<int:draft_id>')
-def get_draft_picks(draft_id):
-  # session['league_id'] = config.league_id
-  draft, draft_start_time, draft_picks, current_pick = get_dp(draft_id)
-  return jsonify({'draft': draft, 'picks': draft_picks, 'current_pick': current_pick})
-
-@app.route('/get_draft/<int:draft_id>/<int:user_id>')
-def get_dps(draft_id, user_id):
-  # session['league_id'] = config.league_id
-  draft, drafting_now, draft_start_time, draft_picks, current_pick = get_draft(draft_id, user_id)
-  if drafting_now == 1:
-    drafting_now = True
-  else:
-    drafting_now = False
-  return jsonify({'draft': draft, 'drafting_now': drafting_now, 'picks': draft_picks, 'current_pick': current_pick})
-
-@app.route('/draft/<int:draft_id>/<int:user_id>/<int:player_id>')
-def draft_player(draft_id, user_id, player_id):
-  player, nextPick, drafting_again = make_pick(draft_id, player_id, user_id)
-  drafting_again_text = ''
-  if drafting_again == 1:
-    drafting_again_text = "You're up again!"
-
-  return jsonify({'player': player, 'next_pick': nextPick, 'drafting_again': drafting_again_text})
-
-@app.route('/update_pick', methods=['POST'])
-def update_pick():
-  post = json.loads(request.data)
-  print(f"post: {post}")
-  attempt = False
-  try:
-    change_pick(post['user_id'], post['overall_pick'], post['league_id'], post['draft_id'])
-    return jsonify({'success': True})
-  except Exception as e:
-    print(f"Error updating pick: {e}")
-    return jsonify({'success': False})
-
-@app.route('/update_pick_enablement', methods=['POST'])
-def disable_pick():
-  post = json.loads(request.data)
-  print(f"post: {post}")
-  attempt = False
-  try:
-    new_status = toggle_pick_enabled(post['overall_pick'], post['league_id'], post['draft_id'])
-    return jsonify({'success': True, 'status': new_status})
-  except Exception as e:
-    print(f"Updating pick enablement failed. Error: {e}")
-    return jsonify({'success': False})
-
-@app.route('/insert_player', methods=['POST'])
-def insert_player():
-  post = json.loads(request.data)
-  try:
-    insert_db_player(post['name'], post['player_id'], post['team'], post['positions'])
-    return jsonify({'success': True})
-  except Exception as e:
-    print("Insert player failed. Error: " + str(e))
-    return jsonify({'success': False})
-
-@app.route('/add_keeper_player', methods=['POST'])
-def add_keeper_player():
-  post = json.loads(request.data)
-  try:
-    add_keeper(post['user_id'], post['player_id'], post['draft_id'])
-    return jsonify({'success': True})
-  except Exception as e:
-    print("Add keeper player failed. Error: " + str(e))
-    return jsonify({'success': False})
-
-@app.route('/add_new_pick', methods=['POST'])
-def add_new_pick():
-  post = json.loads(request.data)
-  print(f"post: {post}")
-  try:
-    add_pick_to_draft(post['draft_id'], post['league_id'], post['user_id'])
-    return jsonify({'success': True})
-  except Exception as e:
-    print("Add new pick failed. Error: " + str(e))
-    return jsonify({'success': False})
-
-@app.route('/get_teams/<int:draft_id>')
-def get_teams(draft_id):
-  return jsonify({'teams': get_teams_from_db(draft_id)})
 
 if __name__== '__main__':
   import credentials
