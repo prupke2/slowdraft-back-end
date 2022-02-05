@@ -2,13 +2,7 @@ from app import *
 from config import *
 import yahoo_api
 import db
-# import oauth
 import config
-# from wtforms import Form, HiddenField
-# from nhl_api import checkIfProspect
-
-# class save_keepersForm(Form):
-# 	keys_input = HiddenField('keys_input')
 
 def get_teams_from_db(draft_id):
 	database = db.DB()
@@ -20,8 +14,8 @@ def get_teams_from_db(draft_id):
 			ORDER BY u.yahoo_team_id, FIELD(y.position, 'LW', 'C', 'RW', 'RW/C', 'RW/LW', \
 				 'C/LW/RW', 'C/LW', 'C/RW', 'LW/RW', 'LW/C', 'LW/D', 'D/LW', 'RW/D', 'D/RW', 'D')"
 	database.cur.execute(sql, (draft_id))
-	players = database.cur.fetchall()	
-	return players
+	teams = database.cur.fetchall()	
+	return jsonify({'success': True, 'teams': teams})
 
 def get_yahoo_team(team_id):
 	ROSTER_URL = YAHOO_BASE_URL + "team/" + config.league_key + ".t." + team_id + "/roster"
@@ -75,26 +69,6 @@ def get_yahoo_team_players(team_id):
 
 	return team, my_skaters, skater_stats, my_goalies, goalie_stats
 
-def get_user_id():
-	database = db.DB()
-	sql = "SELECT user_id, time_zone_offset FROM users WHERE yahoo_league_id = %s AND yahoo_team_id = %s"
-	database.cur.execute(sql, (session['yahoo_league_id'], session['team_id']))
-	result = database.cur.fetchone()
-	session['user_id'] = result['user_id']
-	session['time_zone_offset'] = result['time_zone_offset']
-
-def set_new_user_id(team_id):
-	database = db.DB()
-	sql = "SELECT user_id, username FROM users WHERE yahoo_league_id = %s AND yahoo_team_id = %s"
-	query = database.cur.execute(sql, (session['yahoo_league_id'], team_id))
-	result = database.cur.fetchone()	
-	if result is not None:
-		session['user_id'] = result['user_id']
-		session['team_id'] = team_id
-		return str(session['user_id']), str(result['username'])
-	else:
-		return False, False
-
 def check_if_keepers(team_id):
 	database = db.DB()
 	sql = "SELECT player_id FROM user_team WHERE user_id = %s AND draft_id = %s"
@@ -136,7 +110,6 @@ def delete_keepers():
 	database.cur.execute(sql, (session['user_id'], session['draft_id']))
 	database.connection.commit()
 
-
 def save_keepers(keepers):
 	database = db.DB()
 	for keeper in keepers:
@@ -146,8 +119,10 @@ def save_keepers(keepers):
 		database.connection.commit()
 
 def add_keeper(team_key, player_id, draft_id):
-	# print(f"user_id: {user_id}, player_id: {player_id}, draft_id: {draft_id} ")
 	database = db.DB()
 	sql = "INSERT INTO user_team(team_key, draft_id, player_id, is_keeper, NHLid) VALUES(%s, %s, %s, %s, %s)"
-	database.cur.execute(sql, (team_key, draft_id, player_id, 1, 0))
+	print(f"sql: {sql}")
+	result = database.cur.execute(sql, (team_key, draft_id, player_id, 1, 0))
+	print(f"result: {result}")
 	database.connection.commit()
+	return util.return_true()

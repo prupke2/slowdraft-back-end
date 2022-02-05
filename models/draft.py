@@ -45,11 +45,9 @@ def get_all_users():
 def change_pick(team_key, overall_pick, yahoo_league_id, draft_id):
 	database = db.DB()
 	now = datetime.datetime.utcnow()
-	print(f"now: {now}")
 	database.cur.execute("SELECT * FROM draft_picks dp INNER JOIN users u ON u.team_key = dp.team_key \
 					WHERE dp.overall_pick = %s AND draft_id=%s", (overall_pick, draft_id))
 	old_user = database.cur.fetchone()
-	print(f"old_user: {old_user}")
 	if old_user['drafting_now'] == 1:
 		# Make sure this user doesn't have any other active picks before settings drafting_now = 0
 		pick_check = database.cur.execute("SELECT * FROM draft_picks WHERE draft_id = %s AND team_key = %s \
@@ -76,8 +74,7 @@ def change_pick(team_key, overall_pick, yahoo_league_id, draft_id):
 	if overall_pick == draft['current_pick']:
 		database.cur.execute("UPDATE users SET drafting_now = 1 WHERE team_key = %s", [team_key])
 		database.connection.commit()
-	# database.cur.close()
-	return True
+	return util.return_true()
 
 def toggle_pick_enabled(overall_pick, league_id, draft_id):
 	database = db.DB()
@@ -97,10 +94,8 @@ def toggle_pick_enabled(overall_pick, league_id, draft_id):
 	"""
 	database.cur.execute(sql, (now, league_id))
 	database.connection.commit()
-
-	if disabled == 1:
-		return 'disabled'
-	return 'enabled'
+	new_status = 'disabled' if disabled == 1 else 'enabled'
+	return jsonify({'success': True, 'status': new_status})
 
 def set_draft_picks(rounds, snake):
 	overall_pick_count = 1
@@ -212,7 +207,7 @@ def commit_pick(draft_id, player_id, team_key, pick):
 	print(f"updating draft, team, db to now: {now}")
 	database.cur.execute(sql, (now, now, now, now))
 	database.connection.commit()
-	return jsonify({'success': True})
+	return util.return_true()
 
 def check_next_pick(draft_id, pick):
 	database = db.DB()
@@ -316,4 +311,4 @@ def add_pick_to_draft(draft_id, yahoo_league_id, team_key):
 	"""
 	database.cur.execute(sql, (datetime.datetime.utcnow(), yahoo_league_id))
 	database.connection.commit()
-	return True;
+	return util.return_true()

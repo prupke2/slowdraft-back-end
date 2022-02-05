@@ -41,9 +41,6 @@ def get_db_players(draft_id, position, exclude_taken_players):
 					+ "`19`, `22`, CAST(`23` AS CHAR) AS `23`, `24`, `25`, `26` FROM yahoo_db_21 y "
 	else:
 		query += "y.* FROM yahoo_db_21 y "
-	# if exclude_taken_players == True:
-	# 	query += f"WHERE NOT EXISTS (SELECT player_id FROM user_team ut WHERE ut.player_id = y.player_id AND ut.draft_id = {draft_id} ) AND "
-	# else:
 	query += f"LEFT JOIN user_team ut ON ut.player_id = y.player_id AND ut.draft_id = {draft_id} WHERE "
 
 	if position == "G":
@@ -51,15 +48,13 @@ def get_db_players(draft_id, position, exclude_taken_players):
 	else:
 		query += "position != 'G';"
 	
-	print(str(query))
 	result = database.cur.execute(query)	
 	players = database.cur.fetchall()
 	player_array = []
 	for player in players:
 		player_array.append(player)
 	
-	# print(f"player_array: {player_array}")
-	return players
+	return jsonify({'success': True, 'players': players})
 
 def get_players(sortby, sortdir, position, player_search, offset):
 	LEAGUE_URL = YAHOO_BASE_URL + "league/" + config.league_key

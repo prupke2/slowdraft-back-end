@@ -17,13 +17,13 @@ def get_forum_posts(yahoo_league_id):
 	for post in posts:
 		post['create_date'] = post['create_date'] - datetime.timedelta(minutes=int(float(0)))
 		post['update_date'] = post['update_date'] - datetime.timedelta(minutes=int(float(0)))
-	return posts
+	return jsonify({'success': True, 'posts': posts})
 
 def get_forum_post(id):
 	sql = "SELECT * FROM forum WHERE id = %s"	
 	database = db.DB()
 	database.cur.execute(sql, id)
-	return database.cur.fetchone()	
+	return jsonify({'success': True, 'post': database.cur.fetchone()})
 
 def get_post_replies(yahoo_league_id, post_id):
 	database = db.DB()
@@ -43,10 +43,7 @@ def get_post_replies(yahoo_league_id, post_id):
 		for reply in replies:
 			reply['create_date'] = reply['create_date'] - datetime.timedelta(minutes=int(float(0)))
 			reply['update_date'] = reply['update_date'] - datetime.timedelta(minutes=int(float(0)))
-	return jsonify({
-		"success": True,
-		"replies": replies
-	})
+	return jsonify({"success": True, 	"replies": replies })
 
 def new_forum_post(post, user):
 	now = datetime.datetime.utcnow()
@@ -64,34 +61,31 @@ def new_forum_post(post, user):
 	"""
 	database.cur.execute(sql, (now, user['yahoo_league_id']))
 	database.connection.commit()
-	return True
 
-def update_forum_post(title, body, id, parent_id):
+	if post['parentId'] is not None:
+		update_parent_timestamp(post['parentId'])
+	return util.return_true()
+
+def update_forum_post(user, title, body, id, parent_id):
 	database = db.DB()
-	sql = "UPDATE forum SET title=%s, body=%s, user_id=%s, update_date = %s WHERE id=%s"
-	database.cur.execute(sql, (title, body, session['user_id'], datetime.datetime.utcnow(), id))
+	sql = "UPDATE forum SET title=%s, body=%s, update_date = %s WHERE id=%s"
+	database.cur.execute(sql, (title, body, datetime.datetime.utcnow(), id))
 	database.connection.commit()
 	if parent_id is not None:
 		update_parent_timestamp(parent_id)
-	database.cur.close()
+	return util.return_true()
 
 def update_parent_timestamp(parent_id):
 	database = db.DB()
 	sql = "UPDATE forum SET update_date=%s WHERE id=%s"
 	database.cur.execute(sql, (datetime.datetime.utcnow(), parent_id))
 	database.connection.commit()
-	database.cur.close()
+	return util.return_true()
 
 def delete_forum_post(id):
 	sql = "SELECT user_id FROM forum WHERE id=%s"
 	database = db.DB()
-	database.cur.execute(sql, id)
-	user_check = database.cur.fetchone()
-	user = int(user_check['user_id'])
-	if user != int(session['user_id']):
-		return False
 	sql = "DELETE FROM forum where id=%s"
 	database.cur.execute(sql, id)	
 	database.connection.commit()
-	database.cur.close()
-	return True   
+	return util.return_true()   
