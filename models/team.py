@@ -15,7 +15,7 @@ def get_teams_from_db(draft_id):
 	sql = "SELECT u.yahoo_team_id, u.username, ut.is_keeper, y.name, y.team, y.position, y.prospect, y.player_id, y.headshot \
 			FROM user_team ut \
 			JOIN yahoo_db_21 y ON y.player_id = ut.player_id \
-			JOIN users u ON ut.user_id = u.user_id \
+			JOIN users u ON ut.team_key = u.team_key \
 			WHERE draft_id = %s \
 			ORDER BY u.yahoo_team_id, FIELD(y.position, 'LW', 'C', 'RW', 'RW/C', 'RW/LW', \
 				 'C/LW/RW', 'C/LW', 'C/RW', 'LW/RW', 'LW/C', 'LW/D', 'D/LW', 'RW/D', 'D/RW', 'D')"
@@ -145,11 +145,9 @@ def save_keepers(keepers):
 		database.cur.execute(sql, (session['user_id'], session['draft_id'], keeper['player_id'], 1, keeper['NHLid']))
 		database.connection.commit()
 
-def add_keeper(user_id, player_id, draft_id):
+def add_keeper(team_key, player_id, draft_id):
 	# print(f"user_id: {user_id}, player_id: {player_id}, draft_id: {draft_id} ")
 	database = db.DB()
-	sql = "INSERT INTO user_team(user_id, draft_id, player_id, is_keeper, NHLid) VALUES(%s, %s, %s, %s, %s)"
-	print(f"sql: {sql}")
-	print(f"user_id: {user_id}")
-	database.cur.execute(sql, (user_id, draft_id, player_id, 1, 0))
+	sql = "INSERT INTO user_team(team_key, draft_id, player_id, is_keeper, NHLid) VALUES(%s, %s, %s, %s, %s)"
+	database.cur.execute(sql, (team_key, draft_id, player_id, 1, 0))
 	database.connection.commit()
