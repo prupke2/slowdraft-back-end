@@ -34,8 +34,8 @@ def insert_db_player(name, player_id, team, positions_array, NHLid = None):
 
 def get_db_players(draft_id, position, exclude_taken_players):
 	database = db.DB()
-	query = "SELECT (SELECT DISTINCT u.username FROM users u WHERE u.user_id = ut.user_id) AS 'user', " \
-		"(SELECT DISTINCT u.color FROM users u WHERE u.user_id = ut.user_id) AS 'ownerColor', "
+	query = "SELECT (SELECT DISTINCT u.username FROM users u WHERE u.team_key = ut.team_key) AS 'user', " \
+		"(SELECT DISTINCT u.color FROM users u WHERE u.team_key = ut.team_key) AS 'owner_color', "
 	if position == "G":
 		query += "y.name, y.position, y.prospect, y.player_id, y.player_key, y.team, y.headshot, y.careerGP, `18`, " \
 					+ "`19`, `22`, CAST(`23` AS CHAR) AS `23`, `24`, `25`, `26` FROM yahoo_db_21 y "
