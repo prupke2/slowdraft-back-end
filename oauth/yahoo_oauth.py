@@ -64,7 +64,7 @@ def oauth_login(code):
 
     session['access_token'] = token_response['access_token']
     session['refresh_token'] = token_response['refresh_token']
-    teams, my_team = set_team_sessions()
+    teams, my_team = models.status.set_team_sessions()
     web_token = generate_web_token(my_team, token_response['access_token'], token_response['refresh_token'])
     print(f"\n\nNEW LOGIN: {my_team}\n\n")
 
