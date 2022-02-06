@@ -35,7 +35,6 @@ def check_league(f):
 
 
 def set_team_sessions():
-	# this function will only run if your team_id isn't already set 
 	if team_id is not None:	
 		my_team_data = {}
 		TEAM_URL = config.YAHOO_BASE_URL + "league/" + config.league_key + "/teams"

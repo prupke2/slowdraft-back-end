@@ -2,6 +2,7 @@ import config
 import base64
 import requests
 from app import *
+import models.status
 
 def get_access_token(client_id, client_secret, redirect_uri, code):
 	# This function takes the 7 digit code from the user and attempts to get a yahoo access token 
