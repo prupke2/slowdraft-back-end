@@ -74,7 +74,7 @@ def set_team_sessions():
 					ON u.yahoo_league_id = d.yahoo_league_id
 				WHERE team_key = %s
 			"""
-			database.cur.execute(sql, [my_team_data['team_key']])
+			database.cur.execute(sql, (my_team_data['team_key'], my_team_data['yahoo_league_id']))
 			user = database.cur.fetchone()
 			my_team_data['role'] = user['role']
 			my_team_data['color'] = user['color']
