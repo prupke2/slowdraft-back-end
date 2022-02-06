@@ -3,6 +3,7 @@ import base64
 import requests
 from flask import jsonify
 from app import *
+import yahoo_api
 
 def get_updates_with_league(yahoo_league_id, team_key):
 	database = db.DB()
