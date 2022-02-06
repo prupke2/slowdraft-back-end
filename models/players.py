@@ -32,7 +32,7 @@ def insert_db_player(name, player_id, team, positions_array, NHLid = None):
 	database.connection.commit()
 	return True
 
-def get_db_players(draft_id, position, exclude_taken_players):
+def get_db_players(draft_id, position):
 	database = db.DB()
 	query = "SELECT (SELECT DISTINCT u.username FROM users u WHERE u.team_key = ut.team_key) AS 'user', " \
 		"(SELECT DISTINCT u.color FROM users u WHERE u.team_key = ut.team_key) AS 'owner_color', "
