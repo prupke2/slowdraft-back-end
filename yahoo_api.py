@@ -3,6 +3,7 @@ from app import *
 # from oauth import *
 import config
 import requests
+import xmltodict
 # import oauth
 # oauth.yahoo_oauth import get_access_token, refresh_access_token, test
 
