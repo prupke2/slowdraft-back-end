@@ -35,52 +35,51 @@ def check_league(f):
 
 
 def set_team_sessions():
-	if team_id is not None:	
-		my_team_data = {}
-		TEAM_URL = config.YAHOO_BASE_URL + "league/" + config.league_key + "/teams"
-		team_query = yahoo_api.yahoo_request(TEAM_URL)
-		my_team_data['yahoo_league_id'] = team_query['fantasy_content']['league']['league_id']
-		teams = []
-		for team in team_query['fantasy_content']['league']['teams']['team']:
-			team_data = {}
-			# print("TEAM: " + str(team))
-			team_data['team_id'] = team['team_id']
-			team_data['team_key'] = team['team_key']
-			team_data['user'] = team['managers']['manager']['nickname']
-			team_data['user_logo'] = team['managers']['manager']['image_url']
-			team_data['team_name'] = team['name']
-			team_data['team_logo'] = team['team_logos']['team_logo']['url']
-			# team_data['waiver_priority'] = team['waiver_priority']
+	my_team_data = {}
+	TEAM_URL = config.YAHOO_BASE_URL + "league/" + config.league_key + "/teams"
+	team_query = yahoo_api.yahoo_request(TEAM_URL)
+	my_team_data['yahoo_league_id'] = team_query['fantasy_content']['league']['league_id']
+	teams = []
+	for team in team_query['fantasy_content']['league']['teams']['team']:
+		team_data = {}
+		# print("TEAM: " + str(team))
+		team_data['team_id'] = team['team_id']
+		team_data['team_key'] = team['team_key']
+		team_data['user'] = team['managers']['manager']['nickname']
+		team_data['user_logo'] = team['managers']['manager']['image_url']
+		team_data['team_name'] = team['name']
+		team_data['team_logo'] = team['team_logos']['team_logo']['url']
+		# team_data['waiver_priority'] = team['waiver_priority']
 
-			# # some managers choose not to share their email, so this sets it to empty if that is the case
-			# try:
-			# 	team_data['email'] = team['managers']['manager']['email']
-			# except:
-			# 	team_data['email'] = ""	
+		# # some managers choose not to share their email, so this sets it to empty if that is the case
+		# try:
+		# 	team_data['email'] = team['managers']['manager']['email']
+		# except:
+		# 	team_data['email'] = ""	
 
-			if 'is_owned_by_current_login' in team:
-			# if session['guid'] == team['managers']['manager']['guid']:
-				print(f"team: {team}")
-				my_team_data['team_id'] = team['team_id']
-				my_team_data['logo'] = team['team_logos']['team_logo']['url']
-				my_team_data['team_name'] = team['name']
-				my_team_data['team_key'] = team['team_key']
-				database = db.DB()
-				sql = """
-					SELECT u.role, u.color, d.draft_id, d.current_pick
-					FROM users u
-					INNER JOIN draft d
-						ON u.yahoo_league_id = d.yahoo_league_id
-					WHERE team_key = %s
-					AND d.yahoo_league_id = %s
-				"""
-				database.cur.execute(sql, (my_team_data['team_key'], my_team_data['yahoo_league_id']))
-				user = database.cur.fetchone()
-				my_team_data['role'] = user['role']
-				my_team_data['color'] = user['color']
-				my_team_data['draft_id'] = user['draft_id']
-				my_team_data['current_pick'] = user['current_pick']
-			teams.append(team_data)
+		if 'is_owned_by_current_login' in team:
+		# if session['guid'] == team['managers']['manager']['guid']:
+			print(f"team: {team}")
+			my_team_data['team_id'] = team['team_id']
+			my_team_data['logo'] = team['team_logos']['team_logo']['url']
+			my_team_data['team_name'] = team['name']
+			my_team_data['team_key'] = team['team_key']
+			database = db.DB()
+			sql = """
+				SELECT u.role, u.color, d.draft_id, d.current_pick
+				FROM users u
+				INNER JOIN draft d
+					ON u.yahoo_league_id = d.yahoo_league_id
+				WHERE team_key = %s
+				AND d.yahoo_league_id = %s
+			"""
+			database.cur.execute(sql, (my_team_data['team_key'], my_team_data['yahoo_league_id']))
+			user = database.cur.fetchone()
+			my_team_data['role'] = user['role']
+			my_team_data['color'] = user['color']
+			my_team_data['draft_id'] = user['draft_id']
+			my_team_data['current_pick'] = user['current_pick']
+		teams.append(team_data)
 	return teams, my_team_data
 
 def check_draft_status(f):
