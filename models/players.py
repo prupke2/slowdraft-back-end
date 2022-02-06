@@ -32,18 +32,15 @@ def insert_db_player(name, player_id, team, positions_array, NHLid = None):
 	database.connection.commit()
 	return True
 
-def get_db_players(draft_id, position, exclude_taken_players):
+def get_db_players(draft_id, position):
 	database = db.DB()
-	query = "SELECT (SELECT DISTINCT u.username FROM users u WHERE u.user_id = ut.user_id) AS 'user', " \
-		"(SELECT DISTINCT u.color FROM users u WHERE u.user_id = ut.user_id) AS 'ownerColor', "
+	query = "SELECT (SELECT DISTINCT u.username FROM users u WHERE u.team_key = ut.team_key) AS 'user', " \
+		"(SELECT DISTINCT u.color FROM users u WHERE u.team_key = ut.team_key) AS 'owner_color', "
 	if position == "G":
 		query += "y.name, y.position, y.prospect, y.player_id, y.player_key, y.team, y.headshot, y.careerGP, `18`, " \
 					+ "`19`, `22`, CAST(`23` AS CHAR) AS `23`, `24`, `25`, `26` FROM yahoo_db_21 y "
 	else:
 		query += "y.* FROM yahoo_db_21 y "
-	# if exclude_taken_players == True:
-	# 	query += f"WHERE NOT EXISTS (SELECT player_id FROM user_team ut WHERE ut.player_id = y.player_id AND ut.draft_id = {draft_id} ) AND "
-	# else:
 	query += f"LEFT JOIN user_team ut ON ut.player_id = y.player_id AND ut.draft_id = {draft_id} WHERE "
 
 	if position == "G":
@@ -51,15 +48,13 @@ def get_db_players(draft_id, position, exclude_taken_players):
 	else:
 		query += "position != 'G';"
 	
-	print(str(query))
 	result = database.cur.execute(query)	
 	players = database.cur.fetchall()
 	player_array = []
 	for player in players:
 		player_array.append(player)
 	
-	# print(f"player_array: {player_array}")
-	return players
+	return jsonify({'success': True, 'players': players})
 
 def get_players(sortby, sortdir, position, player_search, offset):
 	LEAGUE_URL = YAHOO_BASE_URL + "league/" + config.league_key
