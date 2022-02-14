@@ -53,14 +53,9 @@ def new_forum_post(post, user):
 
 	database = db.DB()
 	database.cur.execute(sql, (post['title'], post['body'], user['team_key'], user['yahoo_league_id'], \
-		now, now, post['parentId'], user['team_id']))
+		now, now, post['parentId'], user['yahoo_team_id']))
 	database.connection.commit()
-	sql = """ UPDATE updates 
-			SET latest_forum_update = %s 
-			WHERE yahoo_league_id = %s
-	"""
-	database.cur.execute(sql, (now, user['yahoo_league_id']))
-	database.connection.commit()
+	util.update('latest_forum_update', user['draft_id'])
 
 	if post['parentId'] is not None:
 		update_parent_timestamp(post['parentId'])
@@ -83,7 +78,6 @@ def update_parent_timestamp(parent_id):
 	return util.return_true()
 
 def delete_forum_post(id):
-	sql = "SELECT user_id FROM forum WHERE id=%s"
 	database = db.DB()
 	sql = "DELETE FROM forum where id=%s"
 	database.cur.execute(sql, id)	

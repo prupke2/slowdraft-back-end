@@ -61,12 +61,7 @@ def change_pick(team_key, overall_pick, yahoo_league_id, draft_id):
 				(team_key, overall_pick, draft_id))
 	database.connection.commit()
 
-	sql = """ UPDATE updates 
-		SET latest_draft_update = %s
-		WHERE yahoo_league_id = %s
-	"""
-	database.cur.execute(sql, (now, yahoo_league_id))
-	database.connection.commit()
+	util.update('latest_draft_update', draft_id)
 
 	# check if the pick that was changed is the current pick - if it is, let the new user draft 
 	database.cur.execute("SELECT * FROM draft WHERE draft_id = %s", draft_id)
@@ -88,12 +83,8 @@ def toggle_pick_enabled(overall_pick, league_id, draft_id):
 	database.cur.execute("UPDATE draft_picks SET disabled=%s WHERE overall_pick = %s AND draft_id=%s",
 				(disabled, overall_pick, draft_id))
 	database.connection.commit()
-	sql = """ UPDATE updates 
-		SET latest_draft_update = %s
-		WHERE league_id = %s
-	"""
-	database.cur.execute(sql, (now, league_id))
-	database.connection.commit()
+	util.update('latest_draft_update', draft_id)
+
 	new_status = 'disabled' if disabled == 1 else 'enabled'
 	return jsonify({'success': True, 'status': new_status})
 
@@ -202,10 +193,10 @@ def commit_pick(draft_id, player_id, team_key, pick):
 	database.connection.commit()
 	sql = """ UPDATE updates 
 			SET latest_draft_update = %s, latest_team_update = %s, latest_player_db_update = %s, latest_goalie_db_update = %s
-			WHERE yahoo_league_id IN (7543)
+			WHERE draft_id = %s
 	"""
 	print(f"updating draft, team, db to now: {now}")
-	database.cur.execute(sql, (now, now, now, now))
+	database.cur.execute(sql, (now, now, now, now, draft_id))
 	database.connection.commit()
 	return util.return_true()
 
@@ -268,7 +259,7 @@ def check_current_pick_in_draft(draft_id):
 	database = db.DB()
 	sql = """SELECT *
 			FROM draft_picks d
-			INNER JOIN users u ON u.user_id = d.user_id
+			INNER JOIN users u ON u.team_key = d.team_key
 			WHERE draft_id = %s
 			AND pick_expires is NOT NULL
 			AND player_id IS NULL
@@ -305,10 +296,7 @@ def add_pick_to_draft(draft_id, yahoo_league_id, team_key):
 	database.cur.execute(sql, (draft_id, 15, new_pick, team_key))
 	database.connection.commit()
 
-	sql = """ UPDATE updates 
-		SET latest_draft_update = %s
-		WHERE yahoo_league_id = %s
-	"""
+	util.update('latest_draft_update', draft_id)
 	database.cur.execute(sql, (datetime.datetime.utcnow(), yahoo_league_id))
 	database.connection.commit()
 	return util.return_true()

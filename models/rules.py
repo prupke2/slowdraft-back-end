@@ -15,12 +15,7 @@ def new_rule(post, user):
 		database.cur.execute(sql, (post['title'], post['body'], user['yahoo_league_id']))
 		database.connection.commit()
 		
-		sql = """ UPDATE updates 
-				SET latest_rules_update = %s 
-				WHERE yahoo_league_id = %s
-		"""
-		database.cur.execute(sql, (datetime.datetime.utcnow(), user['yahoo_league_id']))
-		database.connection.commit()
+		util.update('latest_rules_update', user['draft_id'])
 		return util.return_true()
 	except Exception as e:
 		print(f"Error creating rule: {e}")
