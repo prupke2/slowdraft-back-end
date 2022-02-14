@@ -45,7 +45,7 @@ def set_team_sessions():
 	for team in team_query['fantasy_content']['league']['teams']['team']:
 		team_data = {}
 		# print("TEAM: " + str(team))
-		team_data['team_id'] = team['team_id']
+		team_data['yahoo_team_id'] = int(team['team_id'])
 		team_data['team_key'] = team['team_key']
 		team_data['user'] = team['managers']['manager']['nickname']
 		team_data['user_logo'] = team['managers']['manager']['image_url']
@@ -62,7 +62,7 @@ def set_team_sessions():
 		if 'is_owned_by_current_login' in team:
 		# if session['guid'] == team['managers']['manager']['guid']:
 			print(f"team: {team}")
-			my_team_data['team_id'] = team['team_id']
+			my_team_data['yahoo_team_id'] = int(team['team_id'])
 			my_team_data['logo'] = team['team_logos']['team_logo']['url']
 			my_team_data['team_name'] = team['name']
 			my_team_data['team_key'] = team['team_key']
