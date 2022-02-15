@@ -78,8 +78,14 @@ def get_yahoo_team_players(team_id):
 
 def check_if_keepers(team_id):
 	database = db.DB()
-	sql = "SELECT player_id FROM user_team WHERE user_id = %s AND draft_id = %s"
-	sql = "SELECT player_id FROM user_team ut INNER JOIN users u ON u.user_id = ut.user_id WHERE u.yahoo_team_id = %s AND ut.draft_id = %s"
+	sql = """
+		SELECT player_id 
+		FROM user_team ut 
+		INNER JOIN users u 
+			ON u.team_key = ut.team_key 
+		WHERE u.yahoo_team_id = %s 
+		AND ut.draft_id = %s
+	"""
 	database.cur.execute(sql, (team_id, session['draft_id']))
 	return database.cur.fetchall()	
 
@@ -127,9 +133,8 @@ def save_keepers(keepers):
 
 def add_keeper(team_key, player_id, draft_id):
 	database = db.DB()
-	sql = "INSERT INTO user_team(team_key, draft_id, player_id, is_keeper, NHLid) VALUES(%s, %s, %s, %s, %s)"
-	print(f"sql: {sql}")
-	result = database.cur.execute(sql, (team_key, draft_id, player_id, 1, 0))
-	print(f"result: {result}")
+	sql = "INSERT INTO user_team(team_key, draft_id, player_id, is_keeper) VALUES(%s, %s, %s, %s)"
+	result = database.cur.execute(sql, (team_key, draft_id, player_id, 1))
 	database.connection.commit()
+	util.update('latest_team_update', draft_id)
 	return util.return_true()
