@@ -133,8 +133,7 @@ def toggle_pick(user):
 @check_if_admin
 def insert_player(user):
   post = json.loads(request.data)
-  insert_db_player(post['name'], post['player_id'], post['team'], post['positions'])
-  return jsonify({'success': True})
+  return insert_db_player(post['name'], post['player_id'], post['team'], post['positions'], user['draft_id'])
 
 @app.route('/add_keeper_player', methods=['POST'])
 @exception_handler

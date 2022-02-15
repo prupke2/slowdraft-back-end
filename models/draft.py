@@ -288,7 +288,6 @@ def add_pick_to_draft(draft_id, yahoo_league_id, team_key):
 	database.cur.execute(sql, draft_id)
 	last_pick = database.cur.fetchone()
 	new_pick = last_pick['last_pick'] + 1
-
 	sql = f"""
 		INSERT INTO draft_picks(draft_id, round, overall_pick, team_key)
 		VALUES(%s, %s, %s, %s)
@@ -297,6 +296,4 @@ def add_pick_to_draft(draft_id, yahoo_league_id, team_key):
 	database.connection.commit()
 
 	util.update('latest_draft_update', draft_id)
-	database.cur.execute(sql, (datetime.datetime.utcnow(), yahoo_league_id))
-	database.connection.commit()
 	return util.return_true()
