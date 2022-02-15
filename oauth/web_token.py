@@ -15,9 +15,10 @@ def generate_web_token(my_team, access_token, refresh_token):
     "exp": expiry,
     "draft_id": my_team['draft_id'],
     "yahoo_league_id": my_team['yahoo_league_id'],
-    "role": my_team['role'],
+    "yahoo_team_id": my_team['yahoo_team_id'],
     "team_key": my_team['team_key'],
     "team_name": my_team['team_name'],
+    "role": my_team['role'],
     "color": my_team['color']
   }
   return jwt.encode(payload, config.client_secret, algorithm="HS256")
