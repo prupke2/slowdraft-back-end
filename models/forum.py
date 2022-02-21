@@ -5,12 +5,15 @@ from util import return_error
 from flask import jsonify
 
 def get_forum_posts(yahoo_league_id):	
-	sql = ("SELECT f.*, u.username AS 'user', u.role, u.color, u.yahoo_team_id \
-		FROM forum f INNER JOIN users u on u.yahoo_league_id = f.yahoo_league_id \
-		WHERE f.parent_id IS NULL \
-		AND f.yahoo_league_id = %s \
-		AND f.team_key = u.team_key \
-		ORDER BY update_date DESC")
+	sql = """
+		SELECT f.id, f.title, f.body, f.yahoo_team_id, f.create_date, f.update_date,
+		u.username, u.role, u.color
+		FROM forum f INNER JOIN users u on u.yahoo_league_id = f.yahoo_league_id
+		WHERE f.parent_id IS NULL
+		AND f.yahoo_league_id = %s
+		AND f.team_key = u.team_key
+		ORDER BY update_date DESC
+		"""
 
 	database = db.DB()
 	posts = database.fetchAll(sql, [yahoo_league_id])
@@ -28,7 +31,7 @@ def get_forum_post(id):
 def get_post_replies(yahoo_league_id, post_id):
 	database = db.DB()
 	sql = """
-		SELECT f.create_date, f.update_date, f.body, f.title, u.yahoo_team_id, u.username
+		SELECT f.id, f.create_date, f.update_date, f.body, f.title, u.yahoo_team_id, u.username, u.color
 		FROM forum f 
 		LEFT JOIN users u 
 		ON u.team_key = f.team_key 
@@ -43,7 +46,7 @@ def get_post_replies(yahoo_league_id, post_id):
 		for reply in replies:
 			reply['create_date'] = reply['create_date'] - datetime.timedelta(minutes=int(float(0)))
 			reply['update_date'] = reply['update_date'] - datetime.timedelta(minutes=int(float(0)))
-	return jsonify({"success": True, 	"replies": replies })
+	return jsonify({"success": True, 	"id": post_id, "replies": replies })
 
 def new_forum_post(post, user):
 	now = datetime.datetime.utcnow()
