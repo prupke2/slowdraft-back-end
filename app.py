@@ -89,9 +89,17 @@ def get_all_rules(user):
 
 @app.route('/create_rule', methods=['POST'])
 @exception_handler
+@check_if_admin
 def create_rule(user):
   post = json.loads(request.data)
   return new_rule(post, user)
+
+@app.route('/edit_rule', methods=['POST'])
+@exception_handler
+@check_if_admin
+def edit_rule(user):
+  post = json.loads(request.data)
+  return update_rule(post, user)
 
 # -------------------------- Draft routes --------------------------
 
