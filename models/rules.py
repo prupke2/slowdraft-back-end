@@ -20,23 +20,18 @@ def new_rule(post, user):
 	except Exception as e:
 		print(f"Error creating rule: {e}")
 		return util.return_error('')
-
-def edit_rule(id):
-	database = db.DB()
-	result = database.cur.execute("SELECT * FROM rules WHERE rule_id=%s", [id])
-	if result == 0:
-		return redirect(url_for('forum'))
-	rule = database.cur.fetchone()
-	if rule['yahoo_league_id'] != int(session['yahoo_league_id']):
-		flash("Rule does not exist or is not in your league", 'danger')
-		return redirect(url_for('rules'))
-	return rule	
 	
-def update_rule(title, body, id):
+def update_rule(post, user):
 	database = db.DB()
-	sql = "UPDATE rules SET title=%s, body=%s, league_id=%s, yahoo_league_id=%s WHERE rule_id=%s"
-	database.cur.execute(sql, (title, body, session['league_id'], session['yahoo_league_id'], id))
+	sql = """
+		UPDATE rules
+		SET title=%s, body=%s 
+		WHERE yahoo_league_id=%s 
+		AND rule_id=%s
+	"""
+	database.cur.execute(sql, (post['title'], post['body'], user['yahoo_league_id'], post['id']))
 	database.connection.commit()
+	return util.return_true()
 
 def delete_rule(id):
 	database = db.DB()
