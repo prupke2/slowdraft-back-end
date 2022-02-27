@@ -31,7 +31,7 @@ def get_forum_post(id):
 def get_post_replies(yahoo_league_id, post_id):
 	database = db.DB()
 	sql = """
-		SELECT f.id, f.create_date, f.update_date, f.body, f.title, u.yahoo_team_id, u.username, u.color
+		SELECT f.id, f.parent_id, f.create_date, f.update_date, f.body, f.title, u.yahoo_team_id, u.username, u.color
 		FROM forum f 
 		LEFT JOIN users u 
 		ON u.team_key = f.team_key 
@@ -50,18 +50,17 @@ def get_post_replies(yahoo_league_id, post_id):
 
 def new_forum_post(post, user):
 	now = datetime.datetime.utcnow()
-	print(f"user: {user}")
 	sql = "INSERT INTO forum(title, body, team_key, yahoo_league_id, create_date, update_date, parent_id, yahoo_team_id) \
 			VALUES(%s, %s, %s, %s, %s, %s, %s, %s)"
 
 	database = db.DB()
 	database.cur.execute(sql, (post['title'], post['body'], user['team_key'], user['yahoo_league_id'], \
-		now, now, post['parentId'], user['yahoo_team_id']))
+		now, now, post['parent_id'], user['yahoo_team_id']))
 	database.connection.commit()
 	util.update('latest_forum_update', user['draft_id'])
 
-	if post['parentId'] is not None:
-		update_parent_timestamp(post['parentId'])
+	if post['parent_id'] is not None:
+		update_parent_timestamp(post['parent_id'])
 	return util.return_true()
 
 def update_forum_post(user, title, body, id, parent_id):

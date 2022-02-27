@@ -71,7 +71,7 @@ def post_to_forum(user):
   post = json.loads(request.data)
   return new_forum_post(post, user)
 
-@app.route('/update_forum_post', methods=['POST'])
+@app.route('/edit_post', methods=['POST'])
 @exception_handler
 def update_post(user):
   post = json.loads(request.data)
