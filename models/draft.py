@@ -83,6 +83,9 @@ def toggle_pick_enabled(overall_pick, league_id, draft_id):
 	database.cur.execute("UPDATE draft_picks SET disabled=%s WHERE overall_pick = %s AND draft_id=%s",
 				(disabled, overall_pick, draft_id))
 	database.connection.commit()
+
+	# in case the current pick has just been disabled
+	check_current_pick_in_draft(draft_id)
 	util.update('latest_draft_update', draft_id)
 
 	new_status = 'disabled' if disabled == 1 else 'enabled'
@@ -263,6 +266,7 @@ def check_current_pick_in_draft(draft_id):
 			WHERE draft_id = %s
 			AND pick_expires is NOT NULL
 			AND player_id IS NULL
+			AND disabled = 0
 			ORDER BY overall_pick DESC
 		"""
 	database.cur.execute(sql, draft_id)
