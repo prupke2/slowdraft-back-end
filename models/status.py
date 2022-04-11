@@ -68,7 +68,7 @@ def set_team_sessions():
 			my_team_data['team_key'] = team['team_key']
 			database = db.DB()
 			sql = """
-				SELECT u.role, u.color, d.draft_id, d.current_pick
+				SELECT u.role, u.color, d.draft_id, d.current_pick, d.is_live
 				FROM users u
 				INNER JOIN draft d
 					ON u.yahoo_league_id = d.yahoo_league_id
@@ -76,13 +76,19 @@ def set_team_sessions():
 				AND d.yahoo_league_id = %s
 			"""
 			database.cur.execute(sql, (my_team_data['team_key'], my_team_data['yahoo_league_id']))
-			user = database.cur.fetchone()
-			my_team_data['role'] = user['role']
-			my_team_data['color'] = user['color']
-			my_team_data['draft_id'] = user['draft_id']
-			my_team_data['current_pick'] = user['current_pick']
+			data = database.cur.fetchone()
+			if data == None:
+				is_live = False
+				registered = False
+			else:
+				my_team_data['role'] = data['role']
+				my_team_data['color'] = data['color']
+				my_team_data['draft_id'] = data['draft_id']
+				my_team_data['current_pick'] = data['current_pick']
+				is_live = data['is_live']
+				registered = True
 		teams.append(team_data)
-	return teams, my_team_data
+	return teams, my_team_data, is_live, registered
 
 def check_draft_status(f):
 	@wraps(f)
