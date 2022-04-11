@@ -2,6 +2,82 @@ from app import *
 import db
 from models import emails
 
+def create_new_draft(yahoo_league_id, team_key, rounds, snake_draft, team_order):
+	database = db.DB()
+
+	sql = """
+		INSERT INTO draft (yahoo_league_id, league_id, draft_start_time_utc, is_live, is_snake_draft, is_over, 
+											rounds, per_pick, current_pick, keeper_total, keeper_goalies)
+		VALUES (%s, 54, '2022-09-24 13:00:00', 0, %s, 0, 
+						%s, 1, 1, 10, 2);
+	"""
+	is_snake_draft = 1 if snake_draft is True else 0
+	database.cur.execute(sql, (yahoo_league_id, is_snake_draft, rounds))
+	database.connection.commit()
+
+	draft_id = util.get_last_row_inserted('draft', 'draft_id')
+	set_draft_order(database, draft_id, yahoo_league_id, team_key, team_order)
+	set_draft_picks(draft_id, rounds, snake_draft)
+	return jsonify({'success': True})
+
+def set_draft_order(database, draft_id, yahoo_league_id, team_key, team_order):
+	sql = """
+	INSERT INTO draft_order(draft_id, yahoo_league_id, draft_order, team_key)
+	VALUES (%s, %s, %s, %s);
+	"""
+	team_key_base = team_key[0:team_key.rfind('.')+1]
+	print(f"team_key_base: {team_key_base}")
+	for team in team_order:
+		database.cur.execute(sql, (draft_id, yahoo_league_id, team['order'], team_key_base + team['id']))
+		database.connection.commit()
+	return
+
+def set_draft_picks(draft_id, rounds, snake):
+	overall_pick_count = 1
+	database = db.DB()
+	sql = "SELECT * FROM draft_order d INNER JOIN users u ON d.team_key = u.team_key WHERE d.draft_id = %s ORDER BY draft_order"
+	user_count = database.cur.execute(sql, draft_id)
+	users = database.cur.fetchall()
+	print("Setting picks...\n")
+	for round in range(1, int(rounds) + 1):
+		if snake == True:
+			if (round > 1):
+				# since the snake draft starts at the end of the round, this jumps it up a round
+				overall_pick_count += user_count
+				if round % 2 == 0:
+					overall_pick_count -=1
+				else:
+					overall_pick_count +=1
+		for user in users:
+			sql = "INSERT INTO draft_picks(draft_id, team_key, overall_pick, round) VALUES(%s, %s, %s, %s)"
+			database.cur.execute(sql, (draft_id, user['team_key'], overall_pick_count, round))
+			database.connection.commit()
+			if (snake == True) and (round % 2 == 0):
+				overall_pick_count -= 1
+			else:
+				overall_pick_count += 1
+
+# def delete_league_and_picks(draft_id, yahoo_league_id):
+# 	database = db.DB()
+# 	sql = "DELETE FROM draft_order WHERE draft_id=%s"
+# 	database.cur.execute(sql, draft_id)
+
+# 	sql = "DELETE FROM draft_picks WHERE draft_id=%s"
+# 	database.cur.execute(sql, draft_id)
+
+# 	sql = "DELETE FROM user_team WHERE draft_id=%s"
+# 	database.cur.execute(sql, draft_id)
+
+# 	sql = "DELETE FROM updates WHERE draft_id=%s"
+# 	database.cur.execute(sql, draft_id)
+
+# 	sql = "DELETE FROM draft WHERE draft_id=%s"
+# 	database.cur.execute(sql, draft_id)
+# 	database.connection.commit()
+
+# 	return jsonify({'success': True})
+
+
 def get_draft(draft_id, team_key):
 	database = db.DB()
 	database.cur.execute("SELECT * FROM draft WHERE draft_id = %s", draft_id)
@@ -71,7 +147,7 @@ def change_pick(team_key, overall_pick, yahoo_league_id, draft_id):
 		database.connection.commit()
 	return util.return_true()
 
-def toggle_pick_enabled(overall_pick, league_id, draft_id):
+def toggle_pick_enabled(overall_pick, draft_id):
 	database = db.DB()
 	now = datetime.datetime.utcnow()
 	disabled = 1
@@ -90,36 +166,6 @@ def toggle_pick_enabled(overall_pick, league_id, draft_id):
 
 	new_status = 'disabled' if disabled == 1 else 'enabled'
 	return jsonify({'success': True, 'status': new_status})
-
-def set_draft_picks(rounds, snake):
-	overall_pick_count = 1
-	database = db.DB()
-	sql = "SELECT * FROM draft_order d INNER JOIN users u ON d.user_id = u.user_id WHERE d.draft_id = %s ORDER BY draft_order"
-	user_count = database.cur.execute(sql, session['draft_id'])
-	users = database.cur.fetchall()
-	print("Setting picks...\n")
-	for round in range(1, int(rounds) + 1):
-		if snake == True:
-			if (round > 1):
-				# since the snake draft starts at the end of the round, this jumps it up a round
-				overall_pick_count += user_count
-				if round % 2 == 0:
-					overall_pick_count -=1
-				else:
-					overall_pick_count +=1
-		for user in users:
-			sql = "INSERT INTO draft_picks(draft_id, user_id, overall_pick, round) VALUES(%s, %s, %s, %s)"
-			database.cur.execute(sql, (session['draft_id'], user['user_id'], overall_pick_count, round))
-			database.connection.commit()
-			if (snake == True) and (round % 2 == 0):
-				overall_pick_count -= 1
-			else:
-				if round == 1 and overall_pick_count == 12:
-					overall_pick_count += 1
-					database.cur.execute(sql, (session['draft_id'], 411, overall_pick_count, round))
-					database.connection.commit()
-				overall_pick_count += 1
-
 
 def make_pick(draft_id, player_id, team_key):
 	if check_if_taken(draft_id, player_id) == True:

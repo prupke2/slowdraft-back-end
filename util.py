@@ -23,3 +23,9 @@ def update(table, draft_id):
   database.cur.execute(query, (datetime.datetime.utcnow(), draft_id))
   database.connection.commit()
   return
+
+def get_last_row_inserted(table, column):
+  database = db.DB()
+  database.cur.execute(f"SELECT MAX({column}) FROM {table};")
+  max = database.cur.fetchone()
+  return max[f'MAX({column})']

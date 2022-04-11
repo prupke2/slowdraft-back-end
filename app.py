@@ -134,7 +134,7 @@ def update_pick(user):
 @check_if_admin
 def toggle_pick(user):
   post = json.loads(request.data)
-  return toggle_pick_enabled(post['overall_pick'], user['yahoo_league_id'], user['draft_id'])
+  return toggle_pick_enabled(post['overall_pick'], user['draft_id'])
 
 @app.route('/insert_player', methods=['POST'])
 @exception_handler
@@ -156,6 +156,19 @@ def add_keeper_player(user):
 def add_new_pick(user):
   post = json.loads(request.data)
   return add_pick_to_draft(user['draft_id'], user['yahoo_league_id'], post['team_key'])
+
+@app.route('/create_draft', methods=['POST'])
+@exception_handler
+@check_if_admin
+def create_draft(user):
+  post = json.loads(request.data)
+  return create_new_draft(user['yahoo_league_id'], user['team_key'], post['rounds'], False, post['team_order'])
+
+# @app.route('/delete_league/<int:draft_id>/<int:yahoo_league_id>', methods=['GET'])
+# def delete_league(draft_id, yahoo_league_id ):
+#   print(f"deleting league")
+#   return delete_league(draft_id, yahoo_league_id)
+
 
 # -------------------------- these routes hit the yahoo api -------------------------- 
 
