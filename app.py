@@ -162,7 +162,7 @@ def add_new_pick(user):
 @check_if_admin
 def create_draft(user):
   post = json.loads(request.data)
-  return create_new_draft(user['yahoo_league_id'], user['team_key'], post['rounds'], False, post['team_order'])
+  return create_new_draft(user, post['teams'], post['rounds'], False, post['team_order'])
 
 # @app.route('/delete_league/<int:draft_id>/<int:yahoo_league_id>', methods=['GET'])
 # def delete_league(draft_id, yahoo_league_id ):

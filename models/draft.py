@@ -1,10 +1,12 @@
 from app import *
 import db
 from models import emails
+from models import status
 
-def create_new_draft(yahoo_league_id, team_key, rounds, snake_draft, team_order):
+def create_new_draft(user, teams, rounds, snake_draft, team_order):
 	database = db.DB()
-
+	delete_existing_draft_if_exists(database, user)
+	yahoo_league_id = user['yahoo_league_id']
 	sql = """
 		INSERT INTO draft (yahoo_league_id, league_id, draft_start_time_utc, is_live, is_snake_draft, is_over, 
 											rounds, per_pick, current_pick, keeper_total, keeper_goalies)
@@ -16,9 +18,53 @@ def create_new_draft(yahoo_league_id, team_key, rounds, snake_draft, team_order)
 	database.connection.commit()
 
 	draft_id = util.get_last_row_inserted('draft', 'draft_id')
-	set_draft_order(database, draft_id, yahoo_league_id, team_key, team_order)
-	set_draft_picks(draft_id, rounds, snake_draft)
-	return jsonify({'success': True})
+	color_codes = ["#ffffff", "#33358c", "#6dbc69", "#000000", "#c80707", "#f85df9", "#4064f9", "#dc930c", "#99f2a3", "#b9f860", "#26d092", "#44aaaf"]
+
+	set_users(database, teams, yahoo_league_id, color_codes)
+	set_draft_order(database, draft_id, yahoo_league_id, user['team_key'], team_order)
+	set_draft_picks(database, draft_id, rounds, snake_draft)
+
+	if user['draft_id'] is not None:
+		return jsonify({'success': True})
+
+	new_web_token = replace_temp_token_with_web_token(user, draft_id, color_codes)
+	return jsonify({'success': True, 'web_token': new_web_token})
+
+def delete_existing_draft_if_exists(database, user):
+	draft_id = user['draft_id']
+	if draft_id is None:
+		return
+	else:
+		try:
+			sql = "DELETE FROM draft_order WHERE yahoo_league_id = %s"
+			database.cur.execute(sql, (user['yahoo_league_id']))
+			database.connection.commit()
+
+			sql = "DELETE FROM draft_picks WHERE draft_id = %s"
+			database.cur.execute(sql, (user['draft_id']))
+			database.connection.commit()
+			
+			sql = "DELETE FROM draft WHERE yahoo_league_id = %s"
+			database.cur.execute(sql, (user['yahoo_league_id']))
+			database.connection.commit()
+		except Exception as e:
+			print(f"Error deleting draft: {e}")
+		return
+
+def set_users(database, teams, yahoo_league_id, color_codes):
+	sql = """
+		INSERT INTO users(
+			name, email, username, yahoo_league_id, yahoo_team_id, team_key, color
+		)
+		VALUES (%s, %s, %s, %s, %s, %s, %s);
+	"""
+	for team in teams:
+		color = color_codes[int(team['yahoo_team_id']) - 1]
+		database.cur.execute(sql, ( \
+			team['user'], team['email'], team['team_name'], yahoo_league_id, team['yahoo_team_id'], team['team_key'], color\
+		))
+		database.connection.commit()
+	return
 
 def set_draft_order(database, draft_id, yahoo_league_id, team_key, team_order):
 	sql = """
@@ -26,15 +72,13 @@ def set_draft_order(database, draft_id, yahoo_league_id, team_key, team_order):
 	VALUES (%s, %s, %s, %s);
 	"""
 	team_key_base = team_key[0:team_key.rfind('.')+1]
-	print(f"team_key_base: {team_key_base}")
 	for team in team_order:
 		database.cur.execute(sql, (draft_id, yahoo_league_id, team['order'], team_key_base + team['id']))
 		database.connection.commit()
 	return
 
-def set_draft_picks(draft_id, rounds, snake):
+def set_draft_picks(database, draft_id, rounds, snake):
 	overall_pick_count = 1
-	database = db.DB()
 	sql = "SELECT * FROM draft_order d INNER JOIN users u ON d.team_key = u.team_key WHERE d.draft_id = %s ORDER BY draft_order"
 	user_count = database.cur.execute(sql, draft_id)
 	users = database.cur.fetchall()
