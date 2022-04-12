@@ -35,7 +35,6 @@ def check_league(f):
 		return f(*args, **kwargs)
 	return wrap		
 
-
 def set_team_sessions():
 	my_team_data = {}
 	TEAM_URL = config.YAHOO_BASE_URL + "league/" + config.league_key + "/teams"
@@ -54,10 +53,10 @@ def set_team_sessions():
 		# team_data['waiver_priority'] = team['waiver_priority']
 
 		# # some managers choose not to share their email, so this sets it to empty if that is the case
-		# try:
-		# 	team_data['email'] = team['managers']['manager']['email']
-		# except:
-		# 	team_data['email'] = ""	
+		try:
+			team_data['email'] = team['managers']['manager']['email']
+		except:
+			team_data['email'] = ""	
 
 		if 'is_owned_by_current_login' in team:
 		# if session['guid'] == team['managers']['manager']['guid']:
@@ -66,20 +65,12 @@ def set_team_sessions():
 			my_team_data['logo'] = team['team_logos']['team_logo']['url']
 			my_team_data['team_name'] = team['name']
 			my_team_data['team_key'] = team['team_key']
-			database = db.DB()
-			sql = """
-				SELECT u.role, u.color, d.draft_id, d.current_pick, d.is_live
-				FROM users u
-				INNER JOIN draft d
-					ON u.yahoo_league_id = d.yahoo_league_id
-				WHERE team_key = %s
-				AND d.yahoo_league_id = %s
-			"""
-			database.cur.execute(sql, (my_team_data['team_key'], my_team_data['yahoo_league_id']))
-			data = database.cur.fetchone()
+
+			data = get_user(my_team_data['team_key'], my_team_data['yahoo_league_id'])
 			if data == None:
 				is_live = False
 				registered = False
+				my_team_data['role'] = 'admin'
 			else:
 				my_team_data['role'] = data['role']
 				my_team_data['color'] = data['color']
@@ -89,6 +80,19 @@ def set_team_sessions():
 				registered = True
 		teams.append(team_data)
 	return teams, my_team_data, is_live, registered
+
+def get_user(team_key, yahoo_league_id):
+	database = db.DB()
+	sql = """
+		SELECT u.role, u.color, d.draft_id, d.current_pick, d.is_live
+		FROM users u
+		INNER JOIN draft d
+			ON u.yahoo_league_id = d.yahoo_league_id
+		WHERE team_key = %s
+		AND d.yahoo_league_id = %s
+	"""
+	database.cur.execute(sql, (team_key, yahoo_league_id))
+	return database.cur.fetchone()
 
 def check_draft_status(f):
 	@wraps(f)
