@@ -70,7 +70,7 @@ def oauth_login(code):
 			if registered == True:
 				web_token = generate_web_token(my_team_data, token_response['access_token'], token_response['refresh_token'])
 			else:
-				web_token = None
+				web_token = generate_temp_web_token(my_team_data, token_response['access_token'], token_response['refresh_token'])
 			print(f"\n\nNEW LOGIN: {my_team_data}\n\n")
 
 			return jsonify({
