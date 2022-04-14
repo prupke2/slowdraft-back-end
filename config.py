@@ -112,6 +112,10 @@ redirect_uri = ''
 league_key = ''
 team_id = ''
 
+# Yahoo Oauth variables set after oauth login
+access_token = ''
+refresh_token = ''
+
 # Pubnub variables - these are used for chat backend
 pubnub_publish_key = ''
 pubnub_subscribe_key = ''

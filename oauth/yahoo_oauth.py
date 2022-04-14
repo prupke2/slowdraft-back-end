@@ -41,8 +41,8 @@ def refresh_access_token(client_id, client_secret, redirect_uri):
 	if response.status_code >= 200 and response.status_code <= 203:
 		token_response = response.json()
 		session['yahoo'] = True
-		session['access_token'] = token_response['access_token']
-		session['refresh_token'] = token_response['refresh_token']
+		config.access_token = token_response['access_token']
+		config.refresh_token = token_response['refresh_token']
 		return True
 	else:
 		print("Error getting token. ")
@@ -63,14 +63,14 @@ def oauth_login(code):
 	if response.status_code >= 200 and response.status_code <= 203:
 		token_response=response.json()
 
-		session['access_token'] = token_response['access_token']
-		session['refresh_token'] = token_response['refresh_token']
+		config.access_token = token_response['access_token']
+		config.refresh_token = token_response['refresh_token']
 		try:
-			teams, my_team_data, is_live_draft, registered = models.status.set_team_sessions()
+			teams, my_team_data, is_live_draft, registered = models.status.set_team_sessions(config.access_token, config.refresh_token)
 			if registered == True:
-				web_token = generate_web_token(my_team_data, token_response['access_token'], token_response['refresh_token'])
+				web_token = generate_web_token(my_team_data, config.access_token, config.refresh_token)
 			else:
-				web_token = generate_temp_web_token(my_team_data, token_response['access_token'], token_response['refresh_token'])
+				web_token = generate_temp_web_token(my_team_data, config.access_token, config.refresh_token)
 			print(f"\n\nNEW LOGIN: {my_team_data}\n\n")
 
 			return jsonify({

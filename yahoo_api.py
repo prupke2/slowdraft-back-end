@@ -10,7 +10,7 @@ import xmltodict
 def yahoo_request(url):
 	# pass in a Yahoo fantasy sports URL here
 	# this function should only be called after the access and refresh tokens are stored as session variables
-	header = "Bearer " + session['access_token']
+	header = "Bearer " + config.access_token
 	print("Attempting to reach URL: %s" % url)
 	response = requests.get(url, headers={'Authorization' : header})
 	

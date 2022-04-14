@@ -35,10 +35,11 @@ def check_league(f):
 		return f(*args, **kwargs)
 	return wrap		
 
-def set_team_sessions():
+def set_team_sessions(access_token, refresh_token):
 	my_team_data = {}
 	TEAM_URL = config.YAHOO_BASE_URL + "league/" + config.league_key + "/teams"
 	team_query = yahoo_api.yahoo_request(TEAM_URL)
+	print(f"team_query: {team_query}")
 	my_team_data['yahoo_league_id'] = team_query['fantasy_content']['league']['league_id']
 	teams = []
 	for team in team_query['fantasy_content']['league']['teams']['team']:
