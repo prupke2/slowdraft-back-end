@@ -148,6 +148,7 @@ def get_draft(draft_id, team_key):
 		drafting_now = True
 
 	return jsonify({
+		'success': True,
 		'draft': draft, 
 		'drafting_now': drafting_now, 
 		'picks': draft_picks, 
