@@ -13,11 +13,11 @@ auth_token = ''
 twilio = ''
 
 # number for sending test SMSes
-if 'test_number' in os.environ:
-	test_number = os.environ['test_number']
-else:
-	import credentials
-	test_number = credentials.test_number	
+# if 'test_number' in os.environ:
+# 	test_number = os.environ['test_number']
+# else:
+# 	import credentials
+# 	test_number = credentials.test_number	
 
 # Sendgrid settings (for emails)
 mail_server = ''
